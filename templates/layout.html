@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DHBW Weather Station</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+    <link rel="icon" type="favicon.ico" type="image/x-icon" href="{{url_for('static',filename='images/favicon.ico')}}"/>
+</head>
+<body>
+    <header>
+        <nav class="navbar bg-nav w-100 d-flex justify-content-center align-items-center">
+            <div class="container d-flex justify-content-between w-100">
+              <a class="navbar-brand" href="#">
+                <img src="{{url_for('static',filename='images/cloudy.svg')}}" width="40px" height="38px" alt="Bootstrap" width="30" height="24">
+                DHBW Weather Station
+              </a>
+              <div class="d-flex justify-content-center">
+                <input class="form-control form-control-sm" placeholder="Ort suchen...">
+              </div>
+            </div>
+          </nav>
+          
+    </header>
+    {% block body%}{% endblock %}
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+</body>
+</html>
