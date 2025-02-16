@@ -8,3 +8,17 @@ services:
     environment:
       FLASK_DEBUG: 1
     command: flask run -h 0.0.0.0
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: dhbwvsghcn
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+volumes:
+  db_data:
