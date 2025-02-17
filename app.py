@@ -1,7 +1,18 @@
 from flask import Flask, render_template, request,jsonify
 import folium
+import psycopg2
 
 app = Flask(__name__)
+
+connection = psycopg2.connect(database="dhbwvsghcn", user="admin",password="secretpassword", host="db",port=5432)
+
+cursor = connection.cursor()
+
+# cursor.execute('select * from testtabelle;')
+
+# record = cursor.fetchall()
+
+# print(record)
 
 @app.route('/')
 
