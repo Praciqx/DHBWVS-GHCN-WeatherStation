@@ -3,3 +3,4 @@ Folium==0.19.4
 SQLAlchemy==2.0.38
 python-dotenv==1.0.1
 psycopg2-binary
+pandas==2.2.3
