@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request,jsonify
 import folium
 import psycopg2
+from geopy.distance import geodesic
 
 app = Flask(__name__)
 
@@ -57,6 +58,25 @@ def get_stations():
 
     return jsonify(map_html=create_map(lat,lon,radius,stations))
 
+def is_within_radius(lat_origin, lon_origin, lat_asked, lon_asked, radius):
+    """
+    Checks whether a given point is within a specified radius from an origin point.
+
+    Calculates the geodesic distance between the origin (lat_origin, lon_origin) and 
+    the target point (lat_asked, lon_asked) in kilometers and compares it to the given radius. The Vincenty formula is used for that.
+
+    Parameters:
+    lat_origin (float): Latitude of the origin point.
+    lon_origin (float): Longitude of the origin point.
+    lat_asked (float): Latitude of the point to check.
+    lon_asked (float): Longitude of the point to check.
+    radius (float): The maximum allowed radius in kilometers.
+
+    Returns:
+    bool: True if the point is within the radius, otherwise False.
+    """
+    distance = geodesic((lat_origin, lon_origin), (lat_asked, lon_asked)).km
+    return distance <= radius
 
 if __name__ == "__main__":
     app.run(debug=True)
