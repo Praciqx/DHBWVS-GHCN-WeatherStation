@@ -185,8 +185,8 @@ def fill_database():
             except Exception as ex:
                 print(f"Fehler beim Verarbeiten der Datei: {ex}")
 
-create_tables()
-fill_database()
+#create_tables()
+#fill_database()
 #insert_ghcn_by_year("2024")
 
 if __name__ == "__main__":
