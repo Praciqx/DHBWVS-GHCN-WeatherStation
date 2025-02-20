@@ -3,36 +3,94 @@
 {% block body %}
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-center">
-        <div class="d-flex justify-content-center w-75 align-items-center rounded-4 py-4 bg-white shadow-sm">
-            <div class="row">
-                <div class="col-5 text-center mx-auto">
-                    <label for="latitude">Breitengrad</label>
-                    <input class="form-control-sm form-control" id="latitude" name="latitude">
-                </div>
-                <div class="col-5 text-center mx-auto">
-                    <label for="latitude">Längengrad</label>
-                    <input class="form-control-sm form-control" id="longitude" name="longitude">
-                </div>
-                <div class="col-11 text-center mx-auto">
-                    <label for="rangeradius" class="form-label">Radius</label>
-                    <input type="range" class="form-range" min="0" max="100" step="5" id="rangeradius">
-                    <input type="text" id="rangeradiusinput" class="form-control form-control-sm w-25 mx-auto text-center" value="50">
-                </div>
-                <div class="col-11 text-center mx-auto">
-                    <label for="rangestation" class="form-label">Anzahl Stationen</label>
-                    <input type="range" class="form-range" min="0" max="100" step="5" id="rangestation">
-                    <input type="text" id="rangestationinput" class="form-control form-control-sm w-25 mx-auto text-center" value="50">
-                </div>
+        <div class="d-flex justify-content-around w-75 align-items-center rounded-4 py-4 bg-white shadow-sm">
+            <div class="col-5">
+                <form id="weatherinputForm" class="needs-validation" novalidate>
+                    <div class="row needs-validation">
+                        <div class="col-5 text-center mx-auto">
+                            <label for="latitude">Breitengrad</label>
+                            <input class="form-control-sm form-control latlon" id="latitude" name="latitude" required>
+                            <div class="invalid-feedback">
+                                Bitte geben Sie einen gültigen Breitengrad an.
+                            </div>
+                        </div>
+                        <div class="col-5 text-center mx-auto">
+                            <label for="latitude">Längengrad</label>
+                            <input class="form-control-sm form-control latlon" id="longitude" name="longitude" required>
+                            <div class="invalid-feedback">
+                                Bitte geben Sie einen gültigen Längengrad an.
+                            </div>
+                        </div>
+                        <div class="col-11 text-center mx-auto">
+                            <label for="rangeradius" class="form-label">Radius</label>
+                            <input type="range" class="form-range ranger" min="0" max="100" step="5" id="rangeradius">
+                            <input type="text" id="rangeradiusinput" class="form-control form-control-sm w-25 mx-auto text-center" value="50">
+                        </div>
+                        <div class="col-11 text-center mx-auto">
+                            <label for="rangestation" class="form-label">Anzahl Stationen</label>
+                            <input type="range" class="form-range ranger" min="0" max="100" step="5" id="rangestation">
+                            <input type="text" id="rangestationinput" class="form-control form-control-sm w-25 mx-auto text-center" value="50">
+                        </div>
+                        <div class="text-center mx-auto pt-4">
+                            <button id="findstations" class="btn btn-primary">
+                                Stationen suchen
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
+            <div id="stationmap" class="col-6">{{ karte_html|safe}}</div>
+            <style>
+                .leaflet-control-attribution{
+                    display:none !important;
+                }
+            </style>
         </div>
     </div>
 </div>
 <script>
-    document.addEventListener("DOMContentLoaded",function(){
-        document.getElementById("rangeradius").addEventListener("input",function(){
-            console.log(this.value);
+    $(function() {
+
+        $("#stationmap").on("click",function(element){
+            console.log(element);
         })
 
-    })
+        $(".ranger").on("input",function(element){
+            console.log(element);
+        })
+
+        $('#weatherinputForm').on('submit', function(e){
+            e.preventDefault();
+            if (!this.checkValidity()) {
+                e.stopPropagation();
+            }else{
+                var lat = $("#latitude").val();
+                var lon = $("#longitude").val();
+                var radius = $("#rangeradiusinput").val();
+                var station_count = $("#rangestationinput").val();
+                $.ajax({
+                    url: '/get_stations',
+                    method: 'GET',
+                    data: {
+                        lat: lat,
+                        lon: lon,
+                        radius: radius,
+                        stations: station_count
+                    },
+                    success: function(response) {
+                        $('#stationmap').html(response.map_html);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Fehler beim Abrufen der Stationen:', status, error);
+                    }
+                });
+            }
+            $(this).addClass('was-validated');
+        });
+        $('.latlon').on("change",function(){
+            this.value = this.value.replace(",",".")
+        });
+    });
+    
 </script>
 {% endblock %}
