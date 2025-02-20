@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request,jsonify
 import folium
 import psycopg2
-from geopy.distance import geodesic
 
 app = Flask(__name__)
 
@@ -58,25 +57,47 @@ def get_stations():
 
     return jsonify(map_html=create_map(lat,lon,radius,stations))
 
-def is_within_radius(lat_origin, lon_origin, lat_asked, lon_asked, radius):
+# Benötigt, damit PostGIS aktiviert ist (nur einmalig, danach kommt sonst ein Fehler)
+cursor.execute("SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'postgis');")
+postgis_installed = cursor.fetchone()[0]
+
+if not postgis_installed:
+    print("PostGIS is not enabled. Enabling now...")
+    cursor.execute("CREATE EXTENSION postgis;")
+    connection.commit()
+    print("PostGIS has been enabled.")
+else:
+    print("PostGIS is already enabled.")
+
+def get_stations_within_radius(lat_ref, lon_ref, radius):
     """
-    Checks whether a given point is within a specified radius from an origin point.
+    Retrieves stations and their distance to a reference point within a given radius.
 
-    Calculates the geodesic distance between the origin (lat_origin, lon_origin) and 
-    the target point (lat_asked, lon_asked) in kilometers and compares it to the given radius. The Vincenty formula is used for that.
-
-    Parameters:
-    lat_origin (float): Latitude of the origin point.
-    lon_origin (float): Longitude of the origin point.
-    lat_asked (float): Latitude of the point to check.
-    lon_asked (float): Longitude of the point to check.
-    radius (float): The maximum allowed radius in kilometers.
+    Args:
+        lat_ref (float): Latitude of the reference point.
+        lon_ref (float): Longitude of the reference point.
+        radius (int): Search radius in kilometers.
 
     Returns:
-    bool: True if the point is within the radius, otherwise False.
+        list: A list of tuples, where each tuple contains:
+              - station_id (str)
+              - station_name (str)
+              - distance (float) in kilometers (rounded to 2 decimal places).
     """
-    distance = geodesic((lat_origin, lon_origin), (lat_asked, lon_asked)).km
-    return distance <= radius
+    
+    query = """
+    SELECT station_id, station_name, ROUND(CAST(ST_Distance(point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) / 1000 AS NUMERIC), 2) AS distance
+    FROM stations
+    WHERE ST_DWithin(point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, %s * 1000)
+    ORDER BY distance;
+    """
+
+    cursor.execute(query, (lon_ref, lat_ref, lon_ref, lat_ref, radius))
+    stations = cursor.fetchall()
+
+    stations = [(station_id, station_name, float(distance)) for station_id, station_name, distance in stations] # Convert distance from Decimal (needed for ROUND) to float.
+
+    return stations
 
 if __name__ == "__main__":
     app.run(debug=True)
