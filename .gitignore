@@ -1,2 +1,7 @@
 env
-.env
+*.env
+*.txt
+*.pyc
+__pycache__/app.cpython-311.pyc
+data/ghcnd-inventory.txt
+env.txt
