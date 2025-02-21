@@ -69,7 +69,7 @@ if not postgis_installed:
 else:
     print("PostGIS is already enabled.")
 
-def get_stations_within_radius(lat_ref, lon_ref, radius):
+def get_stations_within_radius(lat_ref, lon_ref, radius, number):
     """
     Retrieves stations and their distance to a reference point within a given radius.
 
@@ -77,6 +77,7 @@ def get_stations_within_radius(lat_ref, lon_ref, radius):
         lat_ref (float): Latitude of the reference point.
         lon_ref (float): Longitude of the reference point.
         radius (int): Search radius in kilometers.
+        number (int): Maximum number of stations.
 
     Returns:
         list: A list of tuples, where each tuple contains:
@@ -89,10 +90,11 @@ def get_stations_within_radius(lat_ref, lon_ref, radius):
     SELECT station_id, station_name, ROUND(CAST(ST_Distance(point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) / 1000 AS NUMERIC), 2) AS distance
     FROM stations
     WHERE ST_DWithin(point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, %s * 1000)
-    ORDER BY distance;
+    ORDER BY distance
+    LIMIT %s;
     """
 
-    cursor.execute(query, (lon_ref, lat_ref, lon_ref, lat_ref, radius))
+    cursor.execute(query, (lon_ref, lat_ref, lon_ref, lat_ref, radius, number))
     stations = cursor.fetchall()
 
     stations = [(station_id, station_name, float(distance)) for station_id, station_name, distance in stations] # Convert distance from Decimal (needed for ROUND) to float.
