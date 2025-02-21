@@ -7,6 +7,11 @@
         position: relative; /* Feste Positionierung */
         overflow: hidden; /* Verhindert, dass die Karte außerhalb des Containers angezeigt wird */
     }
+    .nav-tabs {
+        display: flex;
+        justify-content: center;
+        flex-direction: row;
+    }
 </style>
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
@@ -47,6 +52,16 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-6 text-center">
+                                <label for="datefrom">Von (Jahr)</label>
+                                <input class="form-control form-control-sm datefrom" type="number" max="{{ year_range.maxYear }}" min="{{ year_range.minYear }}" id="datefrom" name="datefrom" required>
+                                <div class="invalid-feedback">Bitte wählen Sie ein gültiges Jahr zwischen {{ year_range.minYear }} und {{ year_range.maxYear }} aus.</div>
+                            </div>
+                            <div class="col-6 text-center">
+                                <label for="dateto">Bis (Jahr)</label>
+                                <input class="form-control form-control-sm dateto" type="number" max="{{ year_range.maxYear }}" min="{{ year_range.minYear }}" id="dateto" name="dateto" required>
+                                <div class="invalid-feedback">Bitte wählen Sie ein gültiges Jahr zwischen {{ year_range.minYear }} und {{ year_range.maxYear }} aus.</div>
+                            </div>
                             <div class="text-center mx-auto pt-4">
                                 <button id="findstations" class="btn btn-primary">Stationen suchen</button>
                             </div>
@@ -55,7 +70,6 @@
                 </div>
                 <div class="col-5 p-3 rounded-4 bg-white shadow-sm d-flex justify-content-center align-items-center">
                     <div id="stationmap" style="width: 100%; height: 100%;">  
-                  
                     </div>
                     <style>
                         .leaflet-control-attribution {
@@ -65,15 +79,39 @@
                 </div>
             </div>
             <div class="row mt-4">
-                <div class="col-12 p-3 rounded-4 bg-white shadow-sm" style="min-height: 250px;">
-                    <h5 class="text-center">Ergebnisse</h5>
-                    <div id="results">Test</div>
+                <div class="col-12 p-3 rounded-4 bg-white shadow-sm" style="min-height: 480px;">
+                    <div>
+                        <ul class="nav nav-tabs" id="dataTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                              <button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart" type="button" role="tab" aria-controls="chart" aria-selected="true">
+                                Chart
+                              </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                              <button class="nav-link" id="table-tab" data-bs-toggle="tab" data-bs-target="#table" type="button" role="tab" aria-controls="table" aria-selected="false">
+                                Tabelle
+                              </button>
+                            </li>
+                          </ul>
+                          <div class="tab-content d-flex justify-content-center" id="tabContent">
+                            <div class="tab-pane fade show active" id="chart" role="tabpanel" aria-labelledby="chart-tab">
+                                <div>
+                                    <canvas id="stationChart" width="900" height="400"></canvas>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="table" role="tabpanel" aria-labelledby="table-tab">
+                                Table Content
+                            </div>
+                          </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 <script>
+    const stationChart = document.getElementById('stationChart');
+    let chartinstance;
     const map = L.map('stationmap').setView([51.505, -0.09], 13);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -89,6 +127,25 @@
             shadowSize: [41, 41]
         });
     $(function() {
+            
+        chartinstance = new Chart(stationChart, {
+        type: 'line',
+        data: {
+            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [{
+            label: '# of Votes',
+            data: [12, 19, 3, 5, 2, 3],
+            borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+            y: {
+                beginAtZero: true
+            }
+            }
+        }
+        });
         $('#weatherinputForm').on('submit', function(e){
             e.preventDefault();
             if (!this.checkValidity()) {
@@ -99,21 +156,21 @@
                 var radius = $("#rangeradiusinput").val();
                 var station_count = $("#rangestationinput").val();
                 $.ajax({
-                     url: '/get_stations',
-                     method: 'GET',
-                     data: {
-                         lat: lat,
-                         lon: lon,
-                         radius: radius,
-                         stations: station_count
-                     },
-                     success: function(response) {
+                        url: '/get_stations',
+                        method: 'GET',
+                        data: {
+                            lat: lat,
+                            lon: lon,
+                            radius: radius,
+                            stations: station_count
+                        },
+                        success: function(response) {
                         console.log(response);
                         fillMapData(response)
-                     },
-                     error: function(xhr, status, error) {
-                         console.error('Fehler beim Abrufen der Stationen:', status, error);
-                     }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Fehler beim Abrufen der Stationen:', status, error);
+                        }
                 });
             }
             $(this).addClass('was-validated');
@@ -122,7 +179,7 @@
             this.value = this.value.replace(",",".")
         });
     });
-    
+        
     function getStationData(stationid){
         $.ajax({
                 url: '/get_station_data',
@@ -131,12 +188,69 @@
                     stationid:stationid
                 },
                 success: function(response) {
-                    $("#results").html(response);
+                    fillChartData(response)
                 },
                 error: function(xhr, status, error) {
                     console.error('Fehler beim Abrufen der Stationen:', status, error);
                 }
         });
+    }
+
+    function fillChartData(data){
+        chartinstance.data = {
+            labels: data.years,
+            datasets: [
+                { 
+                    label: 'Sommer Min Temp', 
+                    data: data.seasons.Sommer.min, 
+                    borderColor: 'rgba(255, 99, 132, 1)', 
+                    fill: false 
+                },
+                { 
+                    label: 'Sommer Max Temp', 
+                    data: data.seasons.Sommer.max, 
+                    borderColor: 'rgba(255, 99, 132, 0.5)', 
+                    fill: false 
+                },
+                { 
+                    label: 'Frühling Min Temp', 
+                    data: data.seasons.Frühling.min, 
+                    borderColor: 'rgba(54, 162, 235, 1)', 
+                    fill: false 
+                },
+                { 
+                    label: 'Frühling Max Temp', 
+                    data: data.seasons.Frühling.max, 
+                    borderColor: 'rgba(54, 162, 235, 0.5)', 
+                    fill: false 
+                },
+                { 
+                    label: 'Herbst Min Temp', 
+                    data: data.seasons.Herbst.min, 
+                    borderColor: 'rgba(255, 206, 86, 1)', 
+                    fill: false 
+                },
+                { 
+                    label: 'Herbst Max Temp', 
+                    data: data.seasons.Herbst.max, 
+                    borderColor: 'rgba(255, 206, 86, 0.5)', 
+                    fill: false 
+                },
+                { 
+                    label: 'Winter Min Temp', 
+                    data: data.seasons.Winter.min, 
+                    borderColor: 'rgba(75, 192, 192, 1)', 
+                    fill: false 
+                },
+                { 
+                    label: 'Winter Max Temp', 
+                    data: data.seasons.Winter.max, 
+                    borderColor: 'rgba(75, 192, 192, 0.5)', 
+                    fill: false 
+                }
+            ]
+        };
+        chartinstance.update();
     }
 
     function fillMapData(stationjson){
@@ -160,7 +274,7 @@
             var km = station.km;
 
             let marker = L.marker([lat, lon]).addTo(markersLayer);
-            marker.bindPopup(`<span>${address} <button id='${id}' class='btn btn-sm btn-success' onclick='getStationData("${id}")'>Auswählen</button></span>`);
+            marker.bindPopup(`<span>${address}</span><div class="pt-2"><button id='${id}' style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" class='btn btn-sm btn-success' onclick='getStationData("${id}")'>Auswählen</button></div>`);
         });
     }
 </script>

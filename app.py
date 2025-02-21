@@ -19,9 +19,13 @@ cursor = connection.cursor()
 @app.route('/')
 
 def index():
-    default_lat, default_lon = 48.0594, 8.4641
-    default_radius = 5000
-    return render_template("index.html")
+    return render_template("index.html",year_range = getMinMaxYear())
+
+def getMinMaxYear():
+    return {
+        "maxYear":2024,
+        "minYear":1755
+    }
 
 @app.route('/get_stations')
 def get_stations():
@@ -42,21 +46,21 @@ def get_stations():
                 "id": "A884884",
                 "lat": lat + 0.01,
                 "lon": lon + 0.01,
-                "address": "Straße 1, Stadt A",
+                "address": "Freudenstadt",
                 "km": "5km"
             },
             {
                 "id": "DADM84848",
                 "lat": lat - 0.01,
                 "lon": lon - 0.01,
-                "address": "Straße 2, Stadt B",
+                "address": "Villingendorf",
                 "km": "8km"
             },
             {
                 "id": "SDJHGFHf38",
                 "lat": lat + 0.02,
                 "lon": lon + 0.02,
-                "address": "Straße 3, Stadt C",
+                "address": "Schwenningen",
                 "km": "10km"
             }
         ]
@@ -66,8 +70,16 @@ def get_stations():
 @app.route('/get_station_data')
 def get_station_data():
     stationid = request.args.get('stationid', type=str)
-    print(stationid)
-    return jsonify(stationid)
+    data = {
+        "years": [2020, 2021, 2022, 2023],
+        "seasons": {
+            "Sommer": {"min": [20, 22, 23, 24], "max": [30, 32, 33, 34]},
+            "Frühling": {"min": [10, 12, 13, 14], "max": [20, 22, 23, 24]},
+            "Herbst": {"min": [5, 6, 7, 8], "max": [15, 16, 17, 18]},
+            "Winter": {"min": [-5, -4, -3, -2], "max": [5, 6, 7, 8]}
+        }
+    }
+    return jsonify(data)
 
 def is_within_radius(lat_origin, lon_origin, lat_asked, lon_asked, radius):
     """
