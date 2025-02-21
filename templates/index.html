@@ -123,8 +123,20 @@
         });
     });
     
-    function getStationData(elem){
-        $("#results").html(elem)
+    function getStationData(stationid){
+        $.ajax({
+                url: '/get_station_data',
+                method: 'GET',
+                data: {
+                    stationid:stationid
+                },
+                success: function(response) {
+                    $("#results").html(response);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Fehler beim Abrufen der Stationen:', status, error);
+                }
+        });
     }
 
     function fillMapData(stationjson){
@@ -148,7 +160,7 @@
             var km = station.km;
 
             let marker = L.marker([lat, lon]).addTo(markersLayer);
-            marker.bindPopup(`<span>${address} <button id='${id}' class='btn btn-sm btn-success' onclick='getStationData(this)'>Auswählen</button></span>`);
+            marker.bindPopup(`<span>${address} <button id='${id}' class='btn btn-sm btn-success' onclick='getStationData("${id}")'>Auswählen</button></span>`);
         });
     }
 </script>

@@ -67,7 +67,7 @@ def get_stations():
 def get_station_data():
     stationid = request.args.get('stationid', type=str)
     print(stationid)
-    return jsonify(stationdata=stationid)
+    return jsonify(stationid)
 
 def is_within_radius(lat_origin, lon_origin, lat_asked, lon_asked, radius):
     """
