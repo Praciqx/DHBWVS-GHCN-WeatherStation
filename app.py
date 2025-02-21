@@ -79,7 +79,12 @@ def get_station_data():
             "Winter": {"min": [-5, -4, -3, -2], "max": [5, 6, 7, 8]}
         }
     }
-    return jsonify(data)
+    seasontabledata = [
+        {"year":2024,"summermax":10,"summermin":5,"wintermax":2,"wintermin":-2,"springmax":4,"springmin":7,"autumnmin":3,"autumnmax":20,"min":4,"max":30}
+    ]
+    seasontemplate = render_template("seasontabledata.html",data=seasontabledata)
+    yearlytemplate = render_template("yearlytabledata.html",data=seasontabledata)
+    return jsonify(data=data, seasontemplate = seasontemplate,yearlytemplate =yearlytemplate)
 
 def is_within_radius(lat_origin, lon_origin, lat_asked, lon_asked, radius):
     """

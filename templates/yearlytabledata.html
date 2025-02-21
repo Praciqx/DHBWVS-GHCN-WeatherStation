@@ -1,0 +1,23 @@
+<table class="table" style="min-width:50vw">
+    <thead>
+        <tr>
+            <th>Jahr</th>
+            <th>Minimum</th>
+            <th>Maximum</th>
+        </tr>
+        <tr>
+            <th></th>
+            <th class="text-info text-right"><i class="bi bi-thermometer-snow"></i></th>
+            <th class="text-danger text-right"><i class="bi bi-thermometer-sun"></i></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in data %}
+        <tr>
+            <td class="text-right">{{ row.year }}</td>
+            <td class="text-right">{{ row.min }}</td>
+            <td class="text-right">{{ row.max }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
