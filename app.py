@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request,jsonify
+from flask import Flask, render_template, request,jsonify,render_template_string
 import folium
 import psycopg2
-from geopy.distance import geodesic
+from folium.map import Marker
+from jinja2 import Template
 
 app = Flask(__name__)
 
@@ -20,34 +21,7 @@ cursor = connection.cursor()
 def index():
     default_lat, default_lon = 48.0594, 8.4641
     default_radius = 5000
-    karte_html = create_map(default_lat, default_lon, default_radius,0)
-    return render_template("index.html", karte_html=karte_html)
-
-def create_map(lat, lon, radius,stations):
-    karte = folium.Map(location=[lat, lon], zoom_start=11,attributionControl=0)
-
-    folium.Marker(location=[lat, lon], popup="Zentrum").add_to(karte)
-
-    beispiel_stationen = [
-        {"name": "Station 1", "lat": lat + 0.01, "lon": lon + 0.01},
-        {"name": "Station 2", "lat": lat - 0.01, "lon": lon - 0.01},
-        {"name": "Station 3", "lat": lat + 0.02, "lon": lon + 0.02}]
-
-    for station in beispiel_stationen:
-        folium.Marker(
-            location=[station["lat"], station["lon"]],
-            popup=f"<b>{station['name']}",
-            tooltip=station["name"], icon = folium.Icon(color="red")).add_to(karte)
-
-    folium.Circle(
-        location=[lat, lon],
-        radius=radius*1000,
-        color="blue",
-        fill=True,
-        fill_opacity=0.4).add_to(karte)
-    karte._id = "station_map"
-          
-    return karte._repr_html_()
+    return render_template("index.html")
 
 @app.route('/get_stations')
 def get_stations():
@@ -55,8 +29,45 @@ def get_stations():
     lon = request.args.get('lon', type=float)
     radius = request.args.get('radius', type=float)
     stations = request.args.get('stations', type=int)
+    stations_data = {
+        "center":{
+                "lat":lat,
+                "lon":lon,
+                "adress":"Zentrum",
+                "radius":radius*1000
+            }
+        ,
+        "stations": [
+            {
+                "id": "A884884",
+                "lat": lat + 0.01,
+                "lon": lon + 0.01,
+                "address": "Straße 1, Stadt A",
+                "km": "5km"
+            },
+            {
+                "id": "DADM84848",
+                "lat": lat - 0.01,
+                "lon": lon - 0.01,
+                "address": "Straße 2, Stadt B",
+                "km": "8km"
+            },
+            {
+                "id": "SDJHGFHf38",
+                "lat": lat + 0.02,
+                "lon": lon + 0.02,
+                "address": "Straße 3, Stadt C",
+                "km": "10km"
+            }
+        ]
+    }
+    return jsonify(stations_data)
 
-    return jsonify(map_html=create_map(lat,lon,radius,stations))
+@app.route('/get_station_data')
+def get_station_data():
+    stationid = request.args.get('stationid', type=str)
+    print(stationid)
+    return jsonify(stationdata=stationid)
 
 def is_within_radius(lat_origin, lon_origin, lat_asked, lon_asked, radius):
     """

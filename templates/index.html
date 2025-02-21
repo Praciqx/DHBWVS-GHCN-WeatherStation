@@ -1,64 +1,94 @@
 {% extends 'layout.html'%}
-
 {% block body %}
+<style>
+    #stationmap {
+        width: 100%;
+        height: 600px;
+        position: relative; /* Feste Positionierung */
+        overflow: hidden; /* Verhindert, dass die Karte außerhalb des Containers angezeigt wird */
+    }
+</style>
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-center">
-        <div class="d-flex justify-content-around w-75 align-items-center rounded-4 py-4 bg-white shadow-sm">
-            <div class="col-5">
-                <form id="weatherinputForm" class="needs-validation" novalidate>
-                    <div class="row needs-validation">
-                        <div class="col-5 text-center mx-auto">
-                            <label for="latitude">Breitengrad</label>
-                            <input class="form-control-sm form-control latlon" id="latitude" name="latitude" required>
-                            <div class="invalid-feedback">
-                                Bitte geben Sie einen gültigen Breitengrad an.
+    <div class="row justify-content-center">
+        <div class="col-10">
+            <div class="row justify-content-around">
+                <div class="col-5 p-3 rounded-4 bg-white shadow-sm">
+                    <form id="weatherinputForm" class="needs-validation" novalidate>
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <label for="latitude">Breitengrad</label>
+                                <input class="form-control form-control-sm latlon" id="latitude" name="latitude" required>
+                                <div class="invalid-feedback">Bitte geben Sie einen gültigen Breitengrad an.</div>
+                            </div>
+                            <div class="col-6 text-center">
+                                <label for="longitude">Längengrad</label>
+                                <input class="form-control form-control-sm latlon" id="longitude" name="longitude" required>
+                                <div class="invalid-feedback">Bitte geben Sie einen gültigen Längengrad an.</div>
+                            </div>
+                            <div class="container mt-3">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <label for="rangeradius" class="form-label">Radius</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="range" class="form-range me-3 ranger radius" min="0" max="100" step="5" id="rangeradius" oninput="rangeradiusinput.value=rangeradius.value">
+                                            <input type="text" id="rangeradiusinput" class="form-control form-control-sm text-center w-25 rangerinput" value="50" oninput="rangeradius.value=rangeradiusinput.value">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="container mt-3">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <label for="rangestation" class="form-label">Station</label>
+                                        <div class="d-flex align-items-center">
+                                            <input type="range" class="form-range me-3 ranger station" min="0" max="100" step="5" id="rangestation" oninput="rangestationinput.value=rangestation.value">
+                                            <input type="text" id="rangestationinput" class="form-control form-control-sm text-center w-25 rangerinput" value="50" oninput="rangestation.value=rangestationinput.value">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center mx-auto pt-4">
+                                <button id="findstations" class="btn btn-primary">Stationen suchen</button>
                             </div>
                         </div>
-                        <div class="col-5 text-center mx-auto">
-                            <label for="latitude">Längengrad</label>
-                            <input class="form-control-sm form-control latlon" id="longitude" name="longitude" required>
-                            <div class="invalid-feedback">
-                                Bitte geben Sie einen gültigen Längengrad an.
-                            </div>
-                        </div>
-                        <div class="col-11 text-center mx-auto">
-                            <label for="rangeradius" class="form-label">Radius</label>
-                            <input type="range" class="form-range ranger" min="0" max="100" step="5" id="rangeradius">
-                            <input type="text" id="rangeradiusinput" class="form-control form-control-sm w-25 mx-auto text-center" value="50">
-                        </div>
-                        <div class="col-11 text-center mx-auto">
-                            <label for="rangestation" class="form-label">Anzahl Stationen</label>
-                            <input type="range" class="form-range ranger" min="0" max="100" step="5" id="rangestation">
-                            <input type="text" id="rangestationinput" class="form-control form-control-sm w-25 mx-auto text-center" value="50">
-                        </div>
-                        <div class="text-center mx-auto pt-4">
-                            <button id="findstations" class="btn btn-primary">
-                                Stationen suchen
-                            </button>
-                        </div>
+                    </form>
+                </div>
+                <div class="col-5 p-3 rounded-4 bg-white shadow-sm d-flex justify-content-center align-items-center">
+                    <div id="stationmap" style="width: 100%; height: 100%;">  
+                  
                     </div>
-                </form>
+                    <style>
+                        .leaflet-control-attribution {
+                            display: none !important;
+                        }
+                    </style>
+                </div>
             </div>
-            <div id="stationmap" class="col-6">{{ karte_html|safe}}</div>
-            <style>
-                .leaflet-control-attribution{
-                    display:none !important;
-                }
-            </style>
+            <div class="row mt-4">
+                <div class="col-12 p-3 rounded-4 bg-white shadow-sm" style="min-height: 250px;">
+                    <h5 class="text-center">Ergebnisse</h5>
+                    <div id="results">Test</div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 <script>
+    const map = L.map('stationmap').setView([51.505, -0.09], 13);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    var markersLayer = L.layerGroup().addTo(map)
+    var centerIcon = new L.Icon({
+            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/images/marker-icon-2x.png',
+            iconSize: [25, 41],  
+            iconAnchor: [12, 41], 
+            popupAnchor: [1, -34],  
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/images/marker-shadow.png',
+            shadowSize: [41, 41]
+        });
     $(function() {
-
-        $("#stationmap").on("click",function(element){
-            console.log(element);
-        })
-
-        $(".ranger").on("input",function(element){
-            console.log(element);
-        })
-
         $('#weatherinputForm').on('submit', function(e){
             e.preventDefault();
             if (!this.checkValidity()) {
@@ -69,20 +99,21 @@
                 var radius = $("#rangeradiusinput").val();
                 var station_count = $("#rangestationinput").val();
                 $.ajax({
-                    url: '/get_stations',
-                    method: 'GET',
-                    data: {
-                        lat: lat,
-                        lon: lon,
-                        radius: radius,
-                        stations: station_count
-                    },
-                    success: function(response) {
-                        $('#stationmap').html(response.map_html);
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Fehler beim Abrufen der Stationen:', status, error);
-                    }
+                     url: '/get_stations',
+                     method: 'GET',
+                     data: {
+                         lat: lat,
+                         lon: lon,
+                         radius: radius,
+                         stations: station_count
+                     },
+                     success: function(response) {
+                        console.log(response);
+                        fillMapData(response)
+                     },
+                     error: function(xhr, status, error) {
+                         console.error('Fehler beim Abrufen der Stationen:', status, error);
+                     }
                 });
             }
             $(this).addClass('was-validated');
@@ -92,5 +123,33 @@
         });
     });
     
+    function getStationData(elem){
+        $("#results").html(elem)
+    }
+
+    function fillMapData(stationjson){
+        markersLayer.clearLayers();
+        var center = stationjson.center;
+        map.setView([center.lat, center.lon], 12)
+        let marker = L.marker([center.lat,center.lon],{icon: centerIcon}).addTo(markersLayer)
+        marker.bindPopup(center.adress)
+        L.circle([center.lat, center.lon], {
+            color: 'red',
+            fillColor: 'blue',
+            fillOpacity: 0.4,
+            radius: center.radius,
+            weight:0
+        }).addTo(markersLayer);
+        stationjson.stations.forEach(function(station) {
+            var lat = station.lat;
+            var lon = station.lon;
+            var address = station.address;
+            var id = station.id;
+            var km = station.km;
+
+            let marker = L.marker([lat, lon]).addTo(markersLayer);
+            marker.bindPopup(`<span>${address} <button id='${id}' class='btn btn-sm btn-success' onclick='getStationData(this)'>Auswählen</button></span>`);
+        });
+    }
 </script>
 {% endblock %}
