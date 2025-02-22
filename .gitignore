@@ -1,2 +1,5 @@
 env
 .env
+*.pyc
+data/ghcnd-inventory.txt
+env.txt
