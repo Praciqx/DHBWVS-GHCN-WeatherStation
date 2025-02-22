@@ -139,9 +139,10 @@ def get_ghcn_stations(file_path):
                         longitude = data[2]
                         station_name = data[4]
                         cursor.execute('''
-                            INSERT INTO station (station_id, latitude, longitude, station_name) ON CONFLICT (station_id, latitude, longitude, station_name)
-                            DO NOTHING VALUES (%s, %s, %s, %s)
-                        ''', (station_id, latitude, longitude, station_name))
+                            INSERT INTO station (station_id, latitude, longitude, station_name, station_point)
+                            VALUES (%s, %s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s)::geography, 4326))
+                            ON CONFLICT (station_id) DO NOTHING;
+                        ''', (station_id, latitude, longitude, station_name, latitude,longitude))
             cursor.connection.commit()
         except Exception as ex:
             print(ex)
