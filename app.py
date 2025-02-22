@@ -258,9 +258,9 @@ def get_stations_within_radius(lat_ref, lon_ref, radius, number):
     ORDER BY distance
     LIMIT %s;
     """
-
-    cursor.execute(query, (lon_ref, lat_ref, lon_ref, lat_ref, radius, number))
-    stations = cursor.fetchall()
+    with DatabaseConnection() as cursor:
+        cursor.execute(query, (lon_ref, lat_ref, lon_ref, lat_ref, radius, number))
+        stations = cursor.fetchall()
 
     stations = [(station_id, station_name, float(distance)) for station_id, station_name, distance in stations] # Convert distance from Decimal (needed for ROUND) to float.
 
