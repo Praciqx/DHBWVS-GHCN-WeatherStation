@@ -299,7 +299,7 @@
             var id = station.id;
             var km = station.km;
             let marker = L.marker([lat, lon]).addTo(markersLayer);
-            marker.bindPopup(`<span>${address}</span><div class="pt-2"><button id='${id}' style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" class='btn btn-sm btn-success' onclick='getStationData("${id}")'>Auswählen</button></div>`);
+            marker.bindPopup(`<span>Station:${id}</br>${address}</br>(Entfernung: ${km})</br>LAT:${lat}</br>LON:${lon}</span><div class="pt-2"><button id='${id}' style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" class='btn btn-sm btn-success' onclick='getStationData("${id}")'>Auswählen</button></div>`);
         });
     }
 
