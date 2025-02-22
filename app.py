@@ -98,10 +98,11 @@ def create_tables():
     with DatabaseConnection() as cursor:
         try:
             cursor.execute('''CREATE TABLE IF NOT EXISTS "station" (
-                    "station_id" character(25) PRIMARY KEY,
-                    "latitude" NUMERIC(7,4) NOT NULL,
-                    "longitude" NUMERIC(7,4) NOT NULL,
-                    "station_name" character(100) NOT NULL
+                "station_id" character(25) PRIMARY KEY,
+                "latitude" NUMERIC(7,4) NOT NULL,
+                "longitude" NUMERIC(7,4) NOT NULL,
+                "station_name" character(100) NOT NULL,
+                "station_point" geography(Point, 4326) NOT NULL
             );''')
             cursor.execute('''CREATE TABLE IF NOT EXISTS stationdata (
                 station_id character(25),
