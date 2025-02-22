@@ -78,63 +78,75 @@
                     </style>
                 </div>
             </div>
+
             <div class="row mt-4">
-                <div class="col-12 p-3 rounded-4 bg-white shadow-sm blockedContent" style="min-height: 480px;">
-                    <div id="stationContent">
-                        <ul class="nav nav-pills mb-3 d-flex justify-content-center" id="dataTab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="table-tab" data-bs-toggle="tab" data-bs-target="#table" type="button" role="tab" aria-controls="table" aria-selected="false">
-                                  Tabelle
-                                </button>
-                              </li>
-                            <li class="nav-item" role="presentation">
-                              <button class="nav-link" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart" type="button" role="tab" aria-controls="chart" aria-selected="true">
-                                Chart
-                              </button>
-                            </li>
-                          </ul>
-                          <div class="tab-content d-flex justify-content-center" style="overflow:auto" id="tabContent">
-                            <div class="tab-pane fade active" id="chart" role="tabpanel" aria-labelledby="chart-tab">
-                                <div>
-                                    <canvas id="stationChart" width="900" height="400"></canvas>
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="table" role="tabpanel" aria-labelledby="table-tab">
-                                <ul class="nav nav-tabs" id="tableInnerTab" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                      <button class="nav-link active" id="year-tab" data-bs-toggle="tab" data-bs-target="#tableYear" type="button" role="tab" aria-controls="tableYear" aria-selected="true">
-                                        Jährlich
-                                      </button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                      <button class="nav-link" id="season-tab" data-bs-toggle="tab" data-bs-target="#tableSeason" type="button" role="tab" aria-controls="tableSeason" aria-selected="false">
-                                        Jahreszeiten
-                                      </button>
-                                    </li>
-                                  </ul>
-                                  <div class="tab-content" id="tableInnerTabContent">
-                                    <div class="tab-pane fade active show" id="tableYear" role="tabpanel" aria-labelledby="tableYear-tab">
-                                        <div id="yearlyData">
-                                            <div>Bitte wählen Sie eine Station aus!</div>
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane fade" id="tableSeason" role="tableSeason" aria-labelledby="tableSeason-tab">
-                                        <div id="seasonData">
-                                            <div>Bitte wählen Sie eine Station aus!</div>
-                                        </div>
-                                    </div>
-                                  </div>
+                <div class="col-12 p-3 rounded-4 bg-white shadow-sm" style="min-height: 550px;max-height:550px">
+                  <div id="stationContent">
+                    <ul class="nav nav-pills mb-3 d-flex justify-content-center" id="outer-tab" role="tablist">
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="outer-table-tab" data-bs-toggle="pill" data-bs-target="#outer-table" type="button" role="tab" aria-controls="outer-table" aria-selected="true">
+                          Tabellen
+                        </button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="outer-chart-tab" data-bs-toggle="pill" data-bs-target="#outer-chart" type="button" role="tab" aria-controls="outer-chart" aria-selected="false">
+                          Chart
+                        </button>
+                      </li>
+                    </ul>
+                    <div class="tab-content" id="outer-tabContent" >
+                      <div class="tab-pane fade show active" id="outer-table" role="tabpanel" aria-labelledby="outer-table-tab" tabindex="0">
+                        <ul class="nav nav-tabs" id="inner-tab" role="tablist">
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="inner-yearly-tab" data-bs-toggle="tab" data-bs-target="#inner-yearly" type="button" role="tab" aria-controls="inner-yearly" aria-selected="true">
+                              Jährlich
+                            </button>
+                          </li>
+                          <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="inner-season-tab" data-bs-toggle="tab" data-bs-target="#inner-season" type="button" role="tab" aria-controls="inner-season" aria-selected="false">
+                              Jahreszeiten
+                            </button>
+                          </li>
+                        </ul>
+                        <div class="tab-content d-flex justify-content-center" id="inner-tabContent">
+                          <div class="tab-pane fade show active" id="inner-yearly" role="tabpanel" aria-labelledby="inner-yearly-tab" tabindex="0">
+                            <div id="yearlyData" style="overflow:auto;max-height:400px">
+                                <div>Bitte wählen Sie eine Station aus!</div>
                             </div>
                           </div>
+                          <div class="tab-pane fade" id="inner-season" role="tabpanel" aria-labelledby="inner-season-tab" tabindex="0">
+                            <div id="seasonData" style="overflow:auto;max-height:400px">
+                                <div>Bitte wählen Sie eine Station aus!</div>
+                              </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="tab-pane fade d-flex justify-content-center" style="overflow:auto" id="outer-chart" role="tabpanel" aria-labelledby="outer-chart-tab" tabindex="0">
+                        <div>
+                          <canvas id="stationChart" width="900" height="400"></canvas>
+                        </div>
+                      </div>
                     </div>
+                  </div>
                 </div>
-            </div>
+              </div>
         </div>
     </div>
 </div>
 <script>
-    const stationChart = document.getElementById('stationChart');
+    let stationChart;
     let chartinstance;
+    stationChart = $("#stationChart");
+    chartinstance = new Chart(stationChart, {
+        type: 'line',
+        options: {
+            scales: {
+            y: {
+                beginAtZero: true
+            }
+            }
+        }
+    });
     const map = L.map('stationmap').setView([48.0594, 8.4641], 13);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -150,16 +162,6 @@
             shadowSize: [41, 41]
         });
     $(function() {
-        chartinstance = new Chart(stationChart, {
-            type: 'line',
-            options: {
-                scales: {
-                y: {
-                    beginAtZero: true
-                }
-                }
-            }
-        });
         $('#weatherinputForm').on('submit', function(e){
             e.preventDefault();
             if (!this.checkValidity()) {
@@ -188,22 +190,30 @@
             }
             $(this).addClass('was-validated');
         });
-        $('.latlon').on("change",function(){
-            this.value = this.value.replace(",",".")
-        });
+
     });
         
     function getStationData(stationid){
+        $("#stationContent").block();
+        let datefrom = $("#datefrom").val();
+        let dateto = $("#dateto").val();
+        console.log("Test");
         $.ajax({
                 url: '/get_station_data',
                 method: 'GET',
                 data: {
-                    stationid:stationid
+                    stationid:stationid,
+                    datefrom:datefrom,
+                    dateto:dateto
                 },
                 success: function(response) {
                     fillChartData(response.data)
                     $("#seasonData").html(response.seasontemplate);
                     $("#yearlyData").html(response.yearlytemplate);
+                    $("#stationContent").unblock();
+                },
+                done: function(){
+                    $("#stationContent").unblock();
                 },
                 error: function(xhr, status, error) {
                     console.error('Fehler beim Abrufen der Stationen:', status, error);
@@ -271,7 +281,7 @@
     function fillMapData(stationjson){
         markersLayer.clearLayers();
         var center = stationjson.center;
-        map.setView([center.lat, center.lon], 12)
+        map.setView([center.lat, center.lon], 9)
         let marker = L.marker([center.lat,center.lon],{icon: centerIcon}).addTo(markersLayer)
         marker.bindPopup(center.adress)
         L.circle([center.lat, center.lon], {
@@ -281,13 +291,13 @@
             radius: center.radius,
             weight:0
         }).addTo(markersLayer);
+        console.log(stationjson);
         stationjson.stations.forEach(function(station) {
             var lat = station.lat;
             var lon = station.lon;
             var address = station.address;
             var id = station.id;
             var km = station.km;
-
             let marker = L.marker([lat, lon]).addTo(markersLayer);
             marker.bindPopup(`<span>${address}</span><div class="pt-2"><button id='${id}' style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" class='btn btn-sm btn-success' onclick='getStationData("${id}")'>Auswählen</button></div>`);
         });
