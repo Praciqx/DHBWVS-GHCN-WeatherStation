@@ -189,6 +189,53 @@ def fill_database():
 #fill_database()
 #insert_ghcn_by_year("2024")
 
+
+# Benötigt, damit PostGIS aktiviert ist (nur einmalig, danach kommt sonst ein Fehler)
+with DatabaseConnection() as cursor:
+    cursor.execute("SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'postgis');")
+    postgis_installed = cursor.fetchone()[0]
+
+if not postgis_installed:
+    print("PostGIS is not enabled. Enabling now...")
+    with DatabaseConnection() as cursor:
+        cursor.execute("CREATE EXTENSION postgis;")
+    cursor.connection.commit()
+    print("PostGIS has been enabled.")
+else:
+    print("PostGIS is already enabled.")
+
+def get_stations_within_radius(lat_ref, lon_ref, radius, number):
+    """
+    Retrieves stations and their distance to a reference point within a given radius.
+
+    Args:
+        lat_ref (float): Latitude of the reference point.
+        lon_ref (float): Longitude of the reference point.
+        radius (int): Search radius in kilometers.
+        number (int): Maximum number of stations.
+
+    Returns:
+        list: A list of tuples, where each tuple contains:
+              - station_id (str)
+              - station_name (str)
+              - distance (float) in kilometers (rounded to 2 decimal places).
+    """
+    
+    query = """
+    SELECT station_id, station_name, ROUND(CAST(ST_Distance(point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) / 1000 AS NUMERIC), 2) AS distance
+    FROM stations
+    WHERE ST_DWithin(point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, %s * 1000)
+    ORDER BY distance
+    LIMIT %s;
+    """
+
+    cursor.execute(query, (lon_ref, lat_ref, lon_ref, lat_ref, radius, number))
+    stations = cursor.fetchall()
+
+    stations = [(station_id, station_name, float(distance)) for station_id, station_name, distance in stations] # Convert distance from Decimal (needed for ROUND) to float.
+
+    return stations
+
 if __name__ == "__main__":
     app.run(debug=True)
 
