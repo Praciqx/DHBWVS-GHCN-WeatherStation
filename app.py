@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request,jsonify
+from flask import Flask, render_template, request,jsonify,render_template_string
 import folium
 import psycopg2
+from folium.map import Marker
+from jinja2 import Template
 import gzip
 import io
 import pandas as pd
@@ -25,10 +27,13 @@ class DatabaseConnection:
 
 @app.route('/')
 def index():
-    default_lat, default_lon = 48.0594, 8.4641
-    default_radius = 5000
-    karte_html = create_map(default_lat, default_lon, default_radius,0)
-    return render_template("index.html", karte_html=karte_html)
+    return render_template("index.html",year_range = getMinMaxYear())
+
+def getMinMaxYear():
+    return {
+        "maxYear":2024,
+        "minYear":1755
+    }
 
 @app.route('/get_stations')
 def get_stations():
@@ -36,33 +41,58 @@ def get_stations():
     lon = request.args.get('lon', type=float)
     radius = request.args.get('radius', type=float)
     stations = request.args.get('stations', type=int)
-    return jsonify(map_html=create_map(lat,lon,radius,stations))
+    stations_data = {
+        "center":{
+                "lat":lat,
+                "lon":lon,
+                "adress":"Zentrum",
+                "radius":radius*1000
+            }
+        ,
+        "stations": [
+            {
+                "id": "A884884",
+                "lat": lat + 0.01,
+                "lon": lon + 0.01,
+                "address": "Freudenstadt",
+                "km": "5km"
+            },
+            {
+                "id": "DADM84848",
+                "lat": lat - 0.01,
+                "lon": lon - 0.01,
+                "address": "Villingendorf",
+                "km": "8km"
+            },
+            {
+                "id": "SDJHGFHf38",
+                "lat": lat + 0.02,
+                "lon": lon + 0.02,
+                "address": "Schwenningen",
+                "km": "10km"
+            }
+        ]
+    }
+    return jsonify(stations_data)
 
-def create_map(lat, lon, radius,stations):
-    karte = folium.Map(location=[lat, lon], zoom_start=11,attributionControl=0)
-
-    folium.Marker(location=[lat, lon], popup="Zentrum").add_to(karte)
-
-    beispiel_stationen = [
-        {"name": "Station 1", "lat": lat + 0.01, "lon": lon + 0.01},
-        {"name": "Station 2", "lat": lat - 0.01, "lon": lon - 0.01},
-        {"name": "Station 3", "lat": lat + 0.02, "lon": lon + 0.02}]
-
-    for station in beispiel_stationen:
-        folium.Marker(
-            location=[station["lat"], station["lon"]],
-            popup=f"<b>{station['name']}",
-            tooltip=station["name"], icon = folium.Icon(color="red")).add_to(karte)
-
-    folium.Circle(
-        location=[lat, lon],
-        radius=radius*1000,
-        color="blue",
-        fill=True,
-        fill_opacity=0.4).add_to(karte)
-    karte._id = "station_map"
-          
-    return karte._repr_html_()
+@app.route('/get_station_data')
+def get_station_data():
+    stationid = request.args.get('stationid', type=str)
+    data = {
+        "years": [2020, 2021, 2022, 2023],
+        "seasons": {
+            "Sommer": {"min": [20, 22, 23, 24], "max": [30, 32, 33, 34]},
+            "Frühling": {"min": [10, 12, 13, 14], "max": [20, 22, 23, 24]},
+            "Herbst": {"min": [5, 6, 7, 8], "max": [15, 16, 17, 18]},
+            "Winter": {"min": [-5, -4, -3, -2], "max": [5, 6, 7, 8]}
+        }
+    }
+    seasontabledata = [
+        {"year":2024,"summermax":10,"summermin":5,"wintermax":2,"wintermin":-2,"springmax":4,"springmin":7,"autumnmin":3,"autumnmax":20,"min":4,"max":30}
+    ]
+    seasontemplate = render_template("seasontabledata.html",data=seasontabledata)
+    yearlytemplate = render_template("yearlytabledata.html",data=seasontabledata)
+    return jsonify(data=data, seasontemplate = seasontemplate,yearlytemplate =yearlytemplate)
 
 def create_tables():
     with DatabaseConnection() as cursor:
