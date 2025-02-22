@@ -1,37 +1,42 @@
-<table class="table" style="min-width:50vw">
-    <thead>
-        <tr>
-            <th>Jahr</th>
-            <th colspan="2">Frühling</th>
-            <th colspan="2">Sommer</th>
-            <th colspan="2">Herbst</th>
-            <th colspan="2">Winter</th>
-        </tr>
-        <tr>
-            <th></th>
-            <th class="text-info"><i class="bi bi-thermometer-snow"></i></th>
-            <th class="text-danger"><i class="bi bi-thermometer-sun"></i></th>
-            <th class="text-info"><i class="bi bi-thermometer-snow"></i></th>
-            <th class="text-danger"><i class="bi bi-thermometer-sun"></i></th>
-            <th class="text-info"><i class="bi bi-thermometer-snow"></i></th>
-            <th class="text-danger"><i class="bi bi-thermometer-sun"></i></th>
-            <th class="text-info"><i class="bi bi-thermometer-snow"></i></th>
-            <th class="text-danger"><i class="bi bi-thermometer-sun"></i></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in data %}
-        <tr>
-            <td>{{ row.year }}</td>
-            <td>{{ row.springmin }}</td>
-            <td>{{ row.springmax }}</td>
-            <td>{{ row.summermin }}</td>
-            <td>{{ row.summermax }}</td>
-            <td>{{ row.autumnmin }}</td>
-            <td>{{ row.autumnmax }}</td>
-            <td>{{ row.wintermin }}</td>
-            <td>{{ row.wintermax }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+
+{% if data %}
+    <table class="table" style="min-width:50vw">
+        <thead>
+            <tr>
+                <th>Jahr</th>
+                <th colspan="2">Frühling</th>
+                <th colspan="2">Sommer</th>
+                <th colspan="2">Herbst</th>
+                <th colspan="2">Winter</th>
+            </tr>
+            <tr>
+                <th></th>
+                <th class="text-info"><i class="bi bi-thermometer-snow"></i></th>
+                <th class="text-danger"><i class="bi bi-thermometer-sun"></i></th>
+                <th class="text-info"><i class="bi bi-thermometer-snow"></i></th>
+                <th class="text-danger"><i class="bi bi-thermometer-sun"></i></th>
+                <th class="text-info"><i class="bi bi-thermometer-snow"></i></th>
+                <th class="text-danger"><i class="bi bi-thermometer-sun"></i></th>
+                <th class="text-info"><i class="bi bi-thermometer-snow"></i></th>
+                <th class="text-danger"><i class="bi bi-thermometer-sun"></i></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td>{{ row.year }}</td>
+                <td>{{ row.springmin }}</td>
+                <td>{{ row.springmax }}</td>
+                <td>{{ row.summermin }}</td>
+                <td>{{ row.summermax }}</td>
+                <td>{{ row.autumnmin }}</td>
+                <td>{{ row.autumnmax }}</td>
+                <td>{{ row.wintermin }}</td>
+                <td>{{ row.wintermax }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>In diesem Zeitraum wurden keine Daten für Station {{stationid}} gefunden.</p>
+{% endif %}
