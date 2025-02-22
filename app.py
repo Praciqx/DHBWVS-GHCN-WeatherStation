@@ -199,7 +199,7 @@ if not postgis_installed:
     print("PostGIS is not enabled. Enabling now...")
     with DatabaseConnection() as cursor:
         cursor.execute("CREATE EXTENSION postgis;")
-    cursor.connection.commit()
+        cursor.connection.commit()
     print("PostGIS has been enabled.")
 else:
     print("PostGIS is already enabled.")
