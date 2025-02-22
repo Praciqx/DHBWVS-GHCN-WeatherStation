@@ -4,3 +4,4 @@ env
 *.pyc
 data/ghcnd-inventory.txt
 env.txt
+data/ghcnd-stations.csv
