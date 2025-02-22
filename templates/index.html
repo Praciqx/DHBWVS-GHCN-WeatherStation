@@ -212,7 +212,7 @@
                     $("#yearlyData").html(response.yearlytemplate);
                     $("#stationContent").unblock();
                 },
-                done: function(){
+                complete: function(){
                     $("#stationContent").unblock();
                 },
                 error: function(xhr, status, error) {
