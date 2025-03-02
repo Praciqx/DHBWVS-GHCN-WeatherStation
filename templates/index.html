@@ -35,8 +35,8 @@
                                     <div class="col">
                                         <label for="rangeradius" class="form-label">Radius</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="range" class="form-range me-3 ranger radius" min="0" max="100" step="5" id="rangeradius" oninput="rangeradiusinput.value=rangeradius.value">
-                                            <input type="text" id="rangeradiusinput" class="form-control form-control-sm text-center w-25 rangerinput" value="50" oninput="rangeradius.value=rangeradiusinput.value">
+                                            <input type="range" class="form-range me-3 ranger radius" min="1" max="100" step="1" id="rangeradius" oninput="rangeradiusinput.value=rangeradius.value" required>
+                                            <input type="number" id="rangeradiusinput" class="form-control form-control-sm text-center w-25 rangerinput" value="50" oninput="rangeradius.value=rangeradiusinput.value" required>
                                         </div>
                                     </div>
                                 </div>
@@ -46,8 +46,8 @@
                                     <div class="col">
                                         <label for="rangestation" class="form-label">Station</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="range" class="form-range me-3 ranger station" min="0" max="100" step="5" id="rangestation" oninput="rangestationinput.value=rangestation.value">
-                                            <input type="text" id="rangestationinput" class="form-control form-control-sm text-center w-25 rangerinput" value="50" oninput="rangestation.value=rangestationinput.value">
+                                            <input type="range" class="form-range me-3 ranger station" min="0" max="10" step="1" id="rangestation" oninput="rangestationinput.value=rangestation.value" required>
+                                            <input type="number" id="rangestationinput" class="form-control form-control-sm text-center w-25 rangerinput" value="5" oninput="rangestation.value=rangestationinput.value" required>
                                         </div>
                                     </div>
                                 </div>
@@ -226,55 +226,61 @@
             labels: data.years,
             datasets: [
                 { 
-                    label: 'Sommer Min Temp', 
-                    data: data.seasons.Sommer.min, 
-                    borderColor: 'rgba(255, 99, 132, 1)', 
-                    fill: false 
+                    label: 'Jahr Max Temp', 
+                    data: data.seasons.Jahr.max, 
+                    borderColor: 'rgba(112, 48, 160, 1)', 
+        
                 },
                 { 
-                    label: 'Sommer Max Temp', 
-                    data: data.seasons.Sommer.max, 
-                    borderColor: 'rgba(255, 99, 132, 0.5)', 
-                    fill: false 
-                },
-                { 
-                    label: 'Frühling Min Temp', 
-                    data: data.seasons.Frühling.min, 
-                    borderColor: 'rgba(54, 162, 235, 1)', 
-                    fill: false 
+                    label: 'Jahr Min Temp', 
+                    data: data.seasons.Jahr.min, 
+                    borderColor: 'rgba(229, 158, 221, 1)', 
+ 
                 },
                 { 
                     label: 'Frühling Max Temp', 
                     data: data.seasons.Frühling.max, 
-                    borderColor: 'rgba(54, 162, 235, 0.5)', 
-                    fill: false 
+                    borderColor: 'rgba(19, 80, 27, 1)', 
                 },
                 { 
-                    label: 'Herbst Min Temp', 
-                    data: data.seasons.Herbst.min, 
-                    borderColor: 'rgba(255, 206, 86, 1)', 
-                    fill: false 
+                    label: 'Frühling Min Temp', 
+                    data: data.seasons.Frühling.min, 
+                    borderColor: 'rgba(180, 229, 162, 1)', 
+                },
+                { 
+                    label: 'Sommer Max Temp', 
+                    data: data.seasons.Sommer.max, 
+                    borderColor: 'rgba(242, 5, 5, 1)', 
+                },
+                { 
+                    label: 'Sommer Min Temp', 
+                    data: data.seasons.Sommer.min, 
+                    borderColor: 'rgba(242, 5, 5, 0.5)', 
                 },
                 { 
                     label: 'Herbst Max Temp', 
                     data: data.seasons.Herbst.max, 
-                    borderColor: 'rgba(255, 206, 86, 0.5)', 
-                    fill: false 
+                    borderColor: 'rgba(91, 58, 45, 1)', 
                 },
                 { 
-                    label: 'Winter Min Temp', 
-                    data: data.seasons.Winter.min, 
-                    borderColor: 'rgba(75, 192, 192, 1)', 
-                    fill: false 
+                    label: 'Herbst Min Temp', 
+                    data: data.seasons.Herbst.min, 
+                    borderColor: 'rgba(182, 128, 95, 1)', 
                 },
                 { 
                     label: 'Winter Max Temp', 
                     data: data.seasons.Winter.max, 
-                    borderColor: 'rgba(75, 192, 192, 0.5)', 
-                    fill: false 
+                    borderColor: '#1035EB', 
+                },
+                { 
+                    label: 'Winter Min Temp', 
+                    data: data.seasons.Winter.min, 
+                    borderColor: 'rgba(150, 229, 248, 1)', 
+     
                 }
             ]
         };
+        chartinstance.options.plugins.legend.position = 'right';
         chartinstance.update();
     }
 
@@ -299,7 +305,7 @@
             var id = station.id;
             var km = station.km;
             let marker = L.marker([lat, lon]).addTo(markersLayer);
-            marker.bindPopup(`<span>Station:${id}</br>${address}</br>(Entfernung: ${km})</br>LAT:${lat}</br>LON:${lon}</span><div class="pt-2"><button id='${id}' style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" class='btn btn-sm btn-success' onclick='getStationData("${id}")'>Auswählen</button></div>`);
+            marker.bindPopup(`<span><b>Station: </b>${id}</br><b>Ort:</b> ${address}</br><b>Entfernung:</b> ${km}</br><b>Längengrad:</b> ${lat}</br><b>Breitengrad:</b> ${lon}</span><div class="pt-2"><button id='${id}' style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" class='btn btn-sm btn-success' onclick='getStationData("${id}")'>Auswählen</button></div>`);
         });
     }
 
