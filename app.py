@@ -80,11 +80,12 @@ def get_station_data():
         fetcheddata = cursor.fetchall()
         cursor.connection.commit()
         
-    df = pd.DataFrame(fetcheddata, columns=["year","max","min","springmax","springmin","summermax","summermin","autumnmin","autumnmax","wintermin","wintermax"])
+    df = pd.DataFrame(fetcheddata, columns=["year","max","min","springmax","springmin","summermax","summermin","autumnmax","autumnmin","wintermax","wintermin"])
     # Struktur für Charts
     data = {
         "years": df["year"].tolist(),
         "seasons": {
+            "Jahr": {"min": df["min"].tolist(), "max": df["max"].tolist()},
             "Frühling": {"min": df["springmin"].tolist(), "max": df["springmax"].tolist()},
             "Sommer": {"min": df["summermin"].tolist(), "max": df["summermax"].tolist()},
             "Herbst": {"min": df["autumnmin"].tolist(), "max": df["autumnmax"].tolist()},
