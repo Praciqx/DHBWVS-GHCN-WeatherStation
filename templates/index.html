@@ -197,7 +197,6 @@
         $("#stationContent").block();
         let datefrom = $("#datefrom").val();
         let dateto = $("#dateto").val();
-        console.log("Test");
         $.ajax({
                 url: '/get_station_data',
                 method: 'GET',
@@ -287,9 +286,8 @@
     function fillMapData(stationjson){
         markersLayer.clearLayers();
         var center = stationjson.center;
+        let selectedStationIsCenter = false;
         map.setView([center.lat, center.lon], 9)
-        let marker = L.marker([center.lat,center.lon],{icon: centerIcon}).addTo(markersLayer)
-        marker.bindPopup(center.adress)
         L.circle([center.lat, center.lon], {
             color: 'red',
             fillColor: 'blue',
@@ -297,7 +295,6 @@
             radius: center.radius,
             weight:0
         }).addTo(markersLayer);
-        console.log(stationjson);
         stationjson.stations.forEach(function(station) {
             var lat = station.lat;
             var lon = station.lon;
@@ -305,8 +302,17 @@
             var id = station.id;
             var km = station.km;
             let marker = L.marker([lat, lon]).addTo(markersLayer);
+            if(center.lat == lat && center.lon == lon){
+                selectedStationIsCenter = true;
+                marker._icon.style.filter = "hue-rotate(120deg)";
+            }
             marker.bindPopup(`<span><b>Station: </b>${id}</br><b>Ort:</b> ${address}</br><b>Entfernung:</b> ${km}</br><b>Längengrad:</b> ${lat}</br><b>Breitengrad:</b> ${lon}</span><div class="pt-2"><button id='${id}' style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .7rem;" class='btn btn-sm btn-success' onclick='getStationData("${id}")'>Auswählen</button></div>`);
         });
+        if(!selectedStationIsCenter){
+            let marker = L.marker([center.lat,center.lon]).addTo(markersLayer);
+            marker.bindPopup(center.adress);
+            marker._icon.style.filter = "hue-rotate(120deg)"
+        }
     }
 
 </script>
