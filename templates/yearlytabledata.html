@@ -1,3 +1,4 @@
+{% if data %}
 <table class="table" style="min-width:50vw">
     <thead>
         <tr>
@@ -21,3 +22,6 @@
         {% endfor %}
     </tbody>
 </table>
+{% else %}
+    <p>In diesem Zeitraum wurden keine Daten für Station {{stationid}} gefunden.</p>
+{% endif %}

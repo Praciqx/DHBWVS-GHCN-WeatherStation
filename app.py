@@ -8,6 +8,7 @@ import io
 import pandas as pd
 import requests
 from psycopg2.extras import execute_values
+import json
 
 app = Flask(__name__)
 
@@ -40,68 +41,73 @@ def get_stations():
     lat = request.args.get('lat', type=float)
     lon = request.args.get('lon', type=float)
     radius = request.args.get('radius', type=float)
-    stations = request.args.get('stations', type=int)
+    station_count = request.args.get('stations', type=int)
+    
+    selectedstations = get_stations_within_radius(lat, lon, radius, station_count)
+    stations = []
+    for station_id, station_name,distance, station_lat, station_lon  in selectedstations:
+        stations.append({
+            "id": station_id,
+            "lat": station_lat,
+            "lon": station_lon,
+            "address": station_name,
+            "km": f"{distance}km"
+        })
+        
     stations_data = {
-        "center":{
-                "lat":lat,
-                "lon":lon,
-                "adress":"Zentrum",
-                "radius":radius*1000
-            }
-        ,
-        "stations": [
-            {
-                "id": "A884884",
-                "lat": lat + 0.01,
-                "lon": lon + 0.01,
-                "address": "Freudenstadt",
-                "km": "5km"
-            },
-            {
-                "id": "DADM84848",
-                "lat": lat - 0.01,
-                "lon": lon - 0.01,
-                "address": "Villingendorf",
-                "km": "8km"
-            },
-            {
-                "id": "SDJHGFHf38",
-                "lat": lat + 0.02,
-                "lon": lon + 0.02,
-                "address": "Schwenningen",
-                "km": "10km"
-            }
-        ]
+        "center": {
+            "lat": lat,
+            "lon": lon,
+            "adress": "Zentrum",
+            "radius": radius * 1000 
+        },
+        "stations": stations
     }
     return jsonify(stations_data)
 
 @app.route('/get_station_data')
 def get_station_data():
     stationid = request.args.get('stationid', type=str)
+    datefrom = request.args.get('datefrom', type=int)
+    dateto = request.args.get('dateto', type=int)
+
+    query = """
+        SELECT measure_year, maxyear,minyear,maxspring,minspring,maxsummer,minsummer,maxautumn,minautumn,maxwinter,minwinter FROM stationdata where station_id = %s and measure_year between %s and %s;
+    """
+
+    with DatabaseConnection() as cursor:
+        cursor.execute(query,(stationid, datefrom, dateto))
+        fetcheddata = cursor.fetchall()
+        cursor.connection.commit()
+        
+    df = pd.DataFrame(fetcheddata, columns=["year","max","min","springmax","springmin","summermax","summermin","autumnmax","autumnmin","wintermax","wintermin"])
+    # Struktur für Charts
     data = {
-        "years": [2020, 2021, 2022, 2023],
+        "years": df["year"].tolist(),
         "seasons": {
-            "Sommer": {"min": [20, 22, 23, 24], "max": [30, 32, 33, 34]},
-            "Frühling": {"min": [10, 12, 13, 14], "max": [20, 22, 23, 24]},
-            "Herbst": {"min": [5, 6, 7, 8], "max": [15, 16, 17, 18]},
-            "Winter": {"min": [-5, -4, -3, -2], "max": [5, 6, 7, 8]}
+            "Jahr": {"min": df["min"].tolist(), "max": df["max"].tolist()},
+            "Frühling": {"min": df["springmin"].tolist(), "max": df["springmax"].tolist()},
+            "Sommer": {"min": df["summermin"].tolist(), "max": df["summermax"].tolist()},
+            "Herbst": {"min": df["autumnmin"].tolist(), "max": df["autumnmax"].tolist()},
+            "Winter": {"min": df["wintermin"].tolist(), "max": df["wintermax"].tolist()},
         }
     }
-    seasontabledata = [
-        {"year":2024,"summermax":10,"summermin":5,"wintermax":2,"wintermin":-2,"springmax":4,"springmin":7,"autumnmin":3,"autumnmax":20,"min":4,"max":30}
-    ]
-    seasontemplate = render_template("seasontabledata.html",data=seasontabledata)
-    yearlytemplate = render_template("yearlytabledata.html",data=seasontabledata)
-    return jsonify(data=data, seasontemplate = seasontemplate,yearlytemplate =yearlytemplate)
+    # Struktur für die Tabellen
+    seasontabledata = json.loads(df.to_json(orient="records"))
+    seasontemplate = render_template("seasontabledata.html",data=seasontabledata,stationid = stationid)
+    yearlytemplate = render_template("yearlytabledata.html",data=seasontabledata, stationid = stationid)
+    return jsonify(data=data, seasontemplate = seasontemplate,yearlytemplate = yearlytemplate)
+
 
 def create_tables():
     with DatabaseConnection() as cursor:
         try:
             cursor.execute('''CREATE TABLE IF NOT EXISTS "station" (
-                    "station_id" character(25) PRIMARY KEY,
-                    "latitude" NUMERIC(7,4) NOT NULL,
-                    "longitude" NUMERIC(7,4) NOT NULL,
-                    "station_name" character(100) NOT NULL
+                "station_id" character(25) PRIMARY KEY,
+                "latitude" NUMERIC(7,4) NOT NULL,
+                "longitude" NUMERIC(7,4) NOT NULL,
+                "station_name" character(100) NOT NULL,
+                "station_point" geography(Point, 4326) NOT NULL
             );''')
             cursor.execute('''CREATE TABLE IF NOT EXISTS stationdata (
                 station_id character(25),
@@ -122,29 +128,36 @@ def create_tables():
         except Exception as ex:
             print(ex)
 
+import csv
+
 def get_ghcn_stations(file_path):
     with DatabaseConnection() as cursor:
         try:
             cursor.execute("SELECT EXISTS(SELECT 1 FROM station)")
             exists = cursor.fetchone()[0]
             if not exists:
-                with open(file_path, 'r') as file:
-                    for line in file:
-                        data = line.strip().split()
-                        if len(data) < 4: 
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    reader = csv.reader(file) 
+                    next(reader)
+
+                    for row in reader:
+                        if len(row) < 4:
                             continue
                         
-                        station_id = data[0]
-                        latitude = data[1]
-                        longitude = data[2]
-                        station_name = data[4]
+                        station_id = row[0].strip()
+                        latitude = float(row[1].strip())
+                        longitude = float(row[2].strip())
+                        station_name = row[5].strip()
+
                         cursor.execute('''
-                            INSERT INTO station (station_id, latitude, longitude, station_name) ON CONFLICT (station_id, latitude, longitude, station_name)
-                            DO NOTHING VALUES (%s, %s, %s, %s)
-                        ''', (station_id, latitude, longitude, station_name))
+                            INSERT INTO station (station_id, latitude, longitude, station_name, station_point)
+                            VALUES (%s, %s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s)::geography, 4326))
+                            ON CONFLICT (station_id) DO NOTHING;
+                        ''', (station_id, latitude, longitude, station_name, longitude, latitude))
             cursor.connection.commit()
         except Exception as ex:
-            print(ex)
+            print(f"Fehler beim Einfügen: {ex}")
+
 
 def insert_ghcn_by_year(year):
     gzipped_file = download_file(year)
@@ -204,7 +217,7 @@ def download_file(year):
     return io.BytesIO(response.content)
 
 def fill_database():
-    for year in range(1750,2024):
+    for year in range(2000,2024):
         with DatabaseConnection() as cursor:
             try:
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM stationdata where measure_year = %s)",[year])
@@ -218,7 +231,7 @@ def fill_database():
 #create_tables()
 #fill_database()
 #insert_ghcn_by_year("2024")
-
+#get_ghcn_stations("./data/ghcnd-stations.csv")
 
 # Benötigt, damit PostGIS aktiviert ist (nur einmalig, danach kommt sonst ein Fehler)
 with DatabaseConnection() as cursor:
@@ -250,19 +263,22 @@ def get_stations_within_radius(lat_ref, lon_ref, radius, number):
               - station_name (str)
               - distance (float) in kilometers (rounded to 2 decimal places).
     """
-    
     query = """
-    SELECT station_id, station_name, ROUND(CAST(ST_Distance(point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) / 1000 AS NUMERIC), 2) AS distance
-    FROM stations
-    WHERE ST_DWithin(point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, %s * 1000)
+    SELECT station_id, CASE 
+        WHEN latitude = %s AND longitude = %s 
+        THEN station_name || ' (Zentrum)' 
+        ELSE station_name 
+    END AS station_name, ROUND(CAST(ST_Distance(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) / 1000 AS NUMERIC), 2) AS distance, latitude, longitude
+    FROM station
+    WHERE ST_DWithin(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, %s * 1000)
     ORDER BY distance
     LIMIT %s;
     """
-
-    cursor.execute(query, (lon_ref, lat_ref, lon_ref, lat_ref, radius, number))
-    stations = cursor.fetchall()
-
-    stations = [(station_id, station_name, float(distance)) for station_id, station_name, distance in stations] # Convert distance from Decimal (needed for ROUND) to float.
+    with DatabaseConnection() as cursor:
+        cursor.execute(query, (lat_ref, lon_ref, lon_ref, lat_ref, lon_ref, lat_ref, radius, number))
+        stations = cursor.fetchall()
+        cursor.connection.commit()
+    stations = [(station_id, station_name, float(distance), latitude, longitude) for station_id, station_name, distance, latitude, longitude in stations] # Convert distance from Decimal (needed for ROUND) to float.
 
     return stations
 
