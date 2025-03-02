@@ -22,12 +22,12 @@
                         <div class="row">
                             <div class="col-6 text-center">
                                 <label for="latitude">Breitengrad</label>
-                                <input class="form-control form-control-sm latlon" id="latitude" name="latitude" required>
+                                <input class="form-control form-control-sm latlon" id="latitude" name="latitude" required pattern="^-?([0-8]?[0-9](\.\d+)?|90(\.0+)?)$">
                                 <div class="invalid-feedback">Bitte geben Sie einen gültigen Breitengrad an.</div>
                             </div>
                             <div class="col-6 text-center">
                                 <label for="longitude">Längengrad</label>
-                                <input class="form-control form-control-sm latlon" id="longitude" name="longitude" required>
+                                <input class="form-control form-control-sm latlon" id="longitude" name="longitude" required pattern="^-?(180(\.0+)?|((1[0-7][0-9])|([0-9]{1,2}))(\.\d+)?)$">
                                 <div class="invalid-feedback">Bitte geben Sie einen gültigen Längengrad an.</div>
                             </div>
                             <div class="container mt-3">
@@ -36,7 +36,8 @@
                                         <label for="rangeradius" class="form-label">Radius</label>
                                         <div class="d-flex align-items-center">
                                             <input type="range" class="form-range me-3 ranger radius" min="1" max="100" step="1" id="rangeradius" oninput="rangeradiusinput.value=rangeradius.value" required>
-                                            <input type="number" id="rangeradiusinput" class="form-control form-control-sm text-center w-25 rangerinput" value="50" oninput="rangeradius.value=rangeradiusinput.value" required>
+                                            <input type="number" oninput="validity.valid||(value='');" min="1" max="100" step="1" id="rangeradiusinput" class="form-control form-control-sm text-center w-25 rangerinput" value="50" oninput="rangeradius.value=rangeradiusinput.value" required>
+                                            <div class="invalid-feedback">Bitte wählen Sie einen Radius von 1 bis 100 aus.</div>
                                         </div>
                                     </div>
                                 </div>
@@ -46,8 +47,9 @@
                                     <div class="col">
                                         <label for="rangestation" class="form-label">Station</label>
                                         <div class="d-flex align-items-center">
-                                            <input type="range" class="form-range me-3 ranger station" min="0" max="10" step="1" id="rangestation" oninput="rangestationinput.value=rangestation.value" required>
-                                            <input type="number" id="rangestationinput" class="form-control form-control-sm text-center w-25 rangerinput" value="5" oninput="rangestation.value=rangestationinput.value" required>
+                                            <input type="range" class="form-range me-3 ranger station" min="1" max="10" step="1" id="rangestation" oninput="rangestationinput.value=rangestation.value" required>
+                                            <input type="number" id="rangestationinput" min="0" max="10" step="1" oninput="validity.valid||(value='');" class="form-control form-control-sm text-center w-25 rangerinput" value="5" oninput="rangestation.value=rangestationinput.value" required>
+                                            <div class="invalid-feedback">Bitte wählen Sie einen Stationen von 1 bis 10 aus.</div>
                                         </div>
                                     </div>
                                 </div>
@@ -140,10 +142,17 @@
     chartinstance = new Chart(stationChart, {
         type: 'line',
         options: {
+            plugins:{
+                legend:{
+                    labels:{
+                        usePointStyle:true,
+                    }
+                }
+            },
             scales: {
-            y: {
-                beginAtZero: true
-            }
+                y: {
+                    beginAtZero: true
+                }
             }
         }
     });
@@ -228,53 +237,61 @@
                     label: 'Jahr Max Temp', 
                     data: data.seasons.Jahr.max, 
                     borderColor: 'rgba(112, 48, 160, 1)', 
-        
+                    backgroundColor: 'rgba(112, 48, 160, 1)'
                 },
                 { 
                     label: 'Jahr Min Temp', 
                     data: data.seasons.Jahr.min, 
                     borderColor: 'rgba(229, 158, 221, 1)', 
- 
+                    backgroundColor: 'rgba(229, 158, 221, 1)', 
                 },
                 { 
                     label: 'Frühling Max Temp', 
                     data: data.seasons.Frühling.max, 
                     borderColor: 'rgba(19, 80, 27, 1)', 
+                    backgroundColor: 'rgba(19, 80, 27, 1)', 
                 },
                 { 
                     label: 'Frühling Min Temp', 
                     data: data.seasons.Frühling.min, 
                     borderColor: 'rgba(180, 229, 162, 1)', 
+                    backgroundColor: 'rgba(180, 229, 162, 1)', 
                 },
                 { 
                     label: 'Sommer Max Temp', 
                     data: data.seasons.Sommer.max, 
                     borderColor: 'rgba(242, 5, 5, 1)', 
+                    backgroundColor: 'rgba(242, 5, 5, 1)', 
                 },
                 { 
                     label: 'Sommer Min Temp', 
                     data: data.seasons.Sommer.min, 
                     borderColor: 'rgba(242, 5, 5, 0.5)', 
+                    backgroundColor: 'rgba(242, 5, 5, 0.5)',  
                 },
                 { 
                     label: 'Herbst Max Temp', 
                     data: data.seasons.Herbst.max, 
                     borderColor: 'rgba(91, 58, 45, 1)', 
+                    backgroundColor: 'rgba(91, 58, 45, 1)', 
                 },
                 { 
                     label: 'Herbst Min Temp', 
                     data: data.seasons.Herbst.min, 
                     borderColor: 'rgba(182, 128, 95, 1)', 
+                    backgroundColor: 'rgba(182, 128, 95, 1)',
                 },
                 { 
                     label: 'Winter Max Temp', 
                     data: data.seasons.Winter.max, 
                     borderColor: '#1035EB', 
+                    backgroundColor: '#1035EB', 
                 },
                 { 
                     label: 'Winter Min Temp', 
                     data: data.seasons.Winter.min, 
                     borderColor: 'rgba(150, 229, 248, 1)', 
+                    backgroundColor: 'rgba(150, 229, 248, 1)',
      
                 }
             ]
