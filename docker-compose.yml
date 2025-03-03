@@ -1,6 +1,6 @@
 services:
   app:  
-    build: .
+    inmage: ghcr.io/praciqx/weatherstation-image:latest
     ports:
       - 5000:5000
     volumes:
