@@ -22,13 +22,13 @@
                         <div class="row">
                             <div class="col-6 text-center">
                                 <label for="latitude">Breitengrad</label>
-                                <input class="form-control form-control-sm latlon" id="latitude" name="latitude" required pattern="^-?([0-8]?[0-9](\.\d+)?|90(\.0+)?)$">
-                                <div class="invalid-feedback">Bitte geben Sie einen gültigen Breitengrad an.</div>
+                                <input class="form-control form-control-sm latlon" type="text" id="latitude" name="latitude" required pattern="^-?(90(\.0{1,6})?|[0-8]?[0-9](\.\d{1,6})?)$">
+                                <div class="invalid-feedback">Bitte geben Sie einen gültigen Breitengrad im Bereich -90.000000 bis 90.0000000</div>
                             </div>
                             <div class="col-6 text-center">
                                 <label for="longitude">Längengrad</label>
-                                <input class="form-control form-control-sm latlon" id="longitude" name="longitude" required pattern="^-?(180(\.0+)?|((1[0-7][0-9])|([0-9]{1,2}))(\.\d+)?)$">
-                                <div class="invalid-feedback">Bitte geben Sie einen gültigen Längengrad an.</div>
+                                <input class="form-control form-control-sm latlon" type="text" id="longitude" name="longitude" required pattern="^-?(180(\.0+)?|((1[0-7][0-9])|([0-9]{1,2}))(\.\d+)?)$">
+                                <div class="invalid-feedback">Bitte geben Sie einen gültigen Längengrad im Bereich von -180.000000 bis 180.000000 an.</div>
                             </div>
                             <div class="container mt-3">
                                 <div class="row align-items-center">
