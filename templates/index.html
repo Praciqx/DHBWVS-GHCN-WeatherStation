@@ -332,5 +332,19 @@
         }
     }
 
+    $(".latlon").on("keyup",function(){
+        let value = this.value;
+        value = value.replace(/[^0-9,.-]/g, "");
+        value = value.replace(/,/g, ".");
+        if (value.includes("-")) {
+            value = "-" + value.replace(/-/g, "");
+        }
+        // keine weitere Punkte erlauben
+        let parts = value.split(".");
+        if (parts.length > 2) {
+            value = parts[0] + "." + parts.slice(1).join("");
+        }
+        this.value = value;
+    })
 </script>
 {% endblock %}
