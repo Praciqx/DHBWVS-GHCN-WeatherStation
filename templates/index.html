@@ -204,6 +204,8 @@
         
     function getStationData(stationid){
         $("#stationContent").block();
+        clearChartData();
+        clearTableData();
         let datefrom = $("#datefrom").val();
         let dateto = $("#dateto").val();
         $.ajax({
@@ -218,15 +220,26 @@
                     fillChartData(response.data)
                     $("#seasonData").html(response.seasontemplate);
                     $("#yearlyData").html(response.yearlytemplate);
-                    $("#stationContent").unblock();
                 },
                 complete: function(){
                     $("#stationContent").unblock();
                 },
                 error: function(xhr, status, error) {
-                    console.error('Fehler beim Abrufen der Stationen:', status, error);
+                    swal("Fehler", xhr.responseJSON.error, "error");
                 }
         });
+    }
+
+    function clearChartData(){
+        chartinstance.data.labels = []; 
+        chartinstance.data.datasets.forEach(dataset => {
+            dataset.data = []; 
+        });
+        chartinstance.update();
+    }
+
+    function clearTableData(){
+        $(".dataContainer").html("<div>Bitte wählen Sie eine Station aus!</div>");
     }
 
     function fillChartData(data){
