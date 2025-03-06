@@ -9,6 +9,7 @@ import pandas as pd
 import requests
 from psycopg2.extras import execute_values
 import json
+import csv
 
 app = Flask(__name__)
 
@@ -42,8 +43,11 @@ def get_stations():
     lon = request.args.get('lon', type=float)
     radius = request.args.get('radius', type=float)
     station_count = request.args.get('stations', type=int)
+    datefrom = request.args.get('datefrom', type=int)
+    dateto = request.args.get('dateto', type=int)
+
     
-    selectedstations = get_stations_within_radius(lat, lon, radius, station_count)
+    selectedstations = get_stations_within_radius(lat, lon, radius, station_count,datefrom,dateto)
     stations = []
     for station_id, station_name,distance, station_lat, station_lon  in selectedstations:
         stations.append({
@@ -119,6 +123,8 @@ def create_tables():
                 "latitude" NUMERIC(7,4) NOT NULL,
                 "longitude" NUMERIC(7,4) NOT NULL,
                 "station_name" character(100) NOT NULL,
+                "measure_from" smallint NOT NULL,
+                "measure_to" smallint NOT NULL,
                 "station_point" geography(Point, 4326) NOT NULL
             );''')
             cursor.execute('''CREATE TABLE IF NOT EXISTS stationdata (
@@ -140,33 +146,53 @@ def create_tables():
         except Exception as ex:
             print(ex)
 
-import csv
+
 
 #müsste das nicht insert heißen?
-def get_ghcn_stations(file_path):
+def get_ghcn_stations(csv_file_path, txt_file_path):
     with DatabaseConnection() as cursor:
         try:
             cursor.execute("SELECT EXISTS(SELECT 1 FROM station)")
             exists = cursor.fetchone()[0]
-            if not exists:
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    reader = csv.reader(file) 
-                    next(reader)
+            if exists:
+                print("Datenbank ist bereits befüllt.")
+                return  
 
-                    for row in reader:
-                        if len(row) < 4:
-                            continue
-                        
-                        station_id = row[0].strip()
-                        latitude = float(row[1].strip())
-                        longitude = float(row[2].strip())
-                        station_name = row[5].strip()
+            #only valid years stations from inventory
+            df_inventory = pd.read_csv(txt_file_path, sep=r'\s+', header=None, 
+                names=["station_id", "latitude","longitude","measure_type","measure_from_year","measure_to_year"])
+            df_inventory = df_inventory[df_inventory["measure_type"].isin(["TMIN", "TMAX"])].copy()  
 
-                        cursor.execute('''
-                            INSERT INTO station (station_id, latitude, longitude, station_name, station_point)
-                            VALUES (%s, %s, %s, %s, ST_SetSRID(ST_MakePoint(%s, %s)::geography, 4326))
-                            ON CONFLICT (station_id) DO NOTHING;
-                        ''', (station_id, latitude, longitude, station_name, longitude, latitude))
+            df_pivot = df_inventory.pivot(index=["station_id", "latitude", "longitude"], 
+                                          columns="measure_type", 
+                                          values=["measure_from_year", "measure_to_year"])
+            df_pivot.columns = ["measure_from_TMAX", "measure_from_TMIN", "measure_to_TMAX", "measure_to_TMIN"]
+            df_pivot = df_pivot.reset_index()
+
+            df_pivot = df_pivot.dropna()
+            df_pivot["measure_from"] = df_pivot[["measure_from_TMAX", "measure_from_TMIN"]].max(axis=1)
+            df_pivot["measure_to"] = df_pivot[["measure_to_TMAX", "measure_to_TMIN"]].min(axis=1)
+            df_inventory = df_pivot[["station_id", "latitude", "longitude", "measure_from", "measure_to"]]
+            df_inventory.loc[:, "measure_from"] = df_inventory["measure_from"].astype(int)
+            df_inventory.loc[:, "measure_to"] = df_inventory["measure_to"].astype(int)
+
+            #read csv to get the names of the stations
+            df_stations = pd.read_csv(csv_file_path, header=None, usecols=[0, 4, 5], names=["station_id", "station_state","station_name"])
+            #only get the station names that are in the inventory
+            df_stations["station_with_state"] = df_stations["station_state"].fillna("") + " " + df_stations["station_name"]
+            station_name_dict = df_stations.set_index("station_id")["station_with_state"].to_dict()
+
+            df_inventory.loc[:, "station_name"] = df_inventory["station_id"].map(station_name_dict)
+            df_inventory.loc[:, "station_name"] = df_inventory["station_name"].str.strip()
+
+            insert_query = """
+                INSERT INTO station (station_id, latitude, longitude, station_name, measure_from, measure_to, station_point)
+                VALUES (%s, %s, %s, %s,%s,%s, ST_SetSRID(ST_MakePoint(%s, %s), 4326))
+                ON CONFLICT (station_id) DO NOTHING;
+            """
+            for _, row in df_inventory.iterrows():
+                cursor.execute(insert_query, (row["station_id"], row["latitude"], row["longitude"], row["station_name"], row["measure_from"], row["measure_to"], row["longitude"], row["latitude"]))
+
             cursor.connection.commit()
         except Exception as ex:
             print(f"Fehler beim Einfügen: {ex}")
@@ -262,8 +288,10 @@ def fill_database(start, end):
                 print(f"Fehler beim Verarbeiten der Datei: {ex}")
 
 #create_tables()
+#insert_ghcn_by_year("2024")
+#get_ghcn_stations("./data/ghcnd-stations.csv","./data/ghcnd-inventory.txt")
 #fill_database(1750, 2024)
-#get_ghcn_stations("./data/ghcnd-stations.csv")
+
 #### Ende Kopie in data.py
 
 
@@ -282,7 +310,7 @@ if not postgis_installed:
 else:
     print("PostGIS is already enabled.")
 
-def get_stations_within_radius(lat_ref, lon_ref, radius, number):
+def get_stations_within_radius(lat_ref, lon_ref, radius, number,year_from,year_to):
     """
     Retrieves stations and their distance to a reference point within a given radius.
 
@@ -305,12 +333,12 @@ def get_stations_within_radius(lat_ref, lon_ref, radius, number):
         ELSE station_name 
     END AS station_name, ROUND(CAST(ST_Distance(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) / 1000 AS NUMERIC), 2) AS distance, latitude, longitude
     FROM station
-    WHERE ST_DWithin(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, %s * 1000)
+    WHERE ST_DWithin(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, %s * 1000) AND measure_from between %s and %s
     ORDER BY distance
     LIMIT %s;
     """
     with DatabaseConnection() as cursor:
-        cursor.execute(query, (lat_ref, lon_ref, lon_ref, lat_ref, lon_ref, lat_ref, radius, number))
+        cursor.execute(query, (lat_ref, lon_ref, lon_ref, lat_ref, lon_ref, lat_ref, radius, number,year_from,year_to))
         stations = cursor.fetchall()
         cursor.connection.commit()
     stations = [(station_id, station_name, float(distance), latitude, longitude) for station_id, station_name, distance, latitude, longitude in stations] # Convert distance from Decimal (needed for ROUND) to float.
