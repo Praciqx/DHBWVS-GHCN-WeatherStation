@@ -109,6 +109,7 @@ def get_station_data():
     yearlytemplate = render_template("yearlytabledata.html",data=seasontabledata, stationid = stationid)
     return jsonify(data=data, seasontemplate = seasontemplate,yearlytemplate = yearlytemplate)
 
+### Anfang Kopie in data.py
 
 def create_tables():
     with DatabaseConnection() as cursor:
@@ -141,6 +142,7 @@ def create_tables():
 
 import csv
 
+#müsste das nicht insert heißen?
 def get_ghcn_stations(file_path):
     with DatabaseConnection() as cursor:
         try:
@@ -171,36 +173,47 @@ def get_ghcn_stations(file_path):
 
 
 def insert_ghcn_by_year(year):
-    gzipped_file = download_file(year)
-    if gzipped_file:
+    gzipped_file_this_yr = download_file(year)
+    gzipped_file_last_yr = download_file(str(int(year)-1))
+    list_winter = [1, 2]
+    if gzipped_file_this_yr:
         with DatabaseConnection() as cursor:
             try:
-                with gzip.open(gzipped_file, "rt", encoding="utf-8") as f:
-                    df = pd.read_csv(f, delimiter=",", header=None, usecols=[0, 1, 2, 3],
-                                     names=["station_id", "measure_date", "measure_type", "measure_value"])
-                    df = df[df["measure_type"].isin(["TMAX", "TMIN"])]
-                    df["measure_date"] = pd.to_datetime(df["measure_date"].astype(str), format='%Y%m%d')
-                    df["measure_year"] = df["measure_date"].dt.year
+                with gzip.open(gzipped_file_this_yr, "rt", encoding="utf-8") as f1:
+                    df_this_yr = prepare_dataframe(f1)
+                    #Prüfen ob Vorjahr vorhanden
+                    if gzipped_file_last_yr:
+                        list_winter.append(12)
+                        with gzip.open(gzipped_file_last_yr, "rt", encoding="utf-8") as f2:
+                            df_last_yr = prepare_dataframe(f2)
+                            december_last_yr = df_last_yr[df_last_yr["measure_date"].dt.month == 12]
+                            # Delete values of december of the dataframe of this year
+                            df_this_yr = df_this_yr[~(df_this_yr["measure_date"].dt.month == 12)]
+                            # Insert values of december last year to the dataframe of this year
+                            df_this_yr = pd.concat([df_this_yr, december_last_yr]).sort_values(by=['station_id', 'measure_type', 'measure_date'])
+                            df_this_yr.reset_index(drop=True, inplace=True)
                     # Erstellung der Jahreszeiten zur weiteren Berechnung der Mins und Maxs
-                    df["season"] = df["measure_date"].dt.month.apply(lambda month: 'Winter' if month in [12, 1, 2]
+                    df_this_yr["season"] = df_this_yr["measure_date"].dt.month.apply(lambda month: 'Winter' if month in list_winter
                                                                      else ('Spring' if month in [3, 4, 5]
                                                                            else ('Summer' if month in [6, 7, 8] 
-                                                                                 else 'Autumn')))
+                                                                                 else ('Autumn' if month in [9, 10, 11] else 'Unknown'))))
                     #Umrechnung in Dezimalzahl
-                    df["measure_value"] = df["measure_value"] / 10 
-                    yearly_data = df.groupby(["station_id", "measure_year"]).agg(
-                        maxyear=('measure_value', 'max'),
-                        minyear=('measure_value', 'min'),
-                        maxspring=('measure_value', lambda x: x[df.loc[x.index, 'season'] == 'Spring'].max() if 'Spring' in df.loc[x.index, 'season'].values else None),
-                        minspring=('measure_value', lambda x: x[df.loc[x.index, 'season'] == 'Spring'].min() if 'Spring' in df.loc[x.index, 'season'].values else None),
-                        maxsummer=('measure_value', lambda x: x[df.loc[x.index, 'season'] == 'Summer'].max() if 'Summer' in df.loc[x.index, 'season'].values else None),
-                        minsummer=('measure_value', lambda x: x[df.loc[x.index, 'season'] == 'Summer'].min() if 'Summer' in df.loc[x.index, 'season'].values else None),
-                        maxautumn=('measure_value', lambda x: x[df.loc[x.index, 'season'] == 'Autumn'].max() if 'Autumn' in df.loc[x.index, 'season'].values else None),
-                        minautumn=('measure_value', lambda x: x[df.loc[x.index, 'season'] == 'Autumn'].min() if 'Autumn' in df.loc[x.index, 'season'].values else None),
-                        maxwinter=('measure_value', lambda x: x[df.loc[x.index, 'season'] == 'Winter'].max() if 'Winter' in df.loc[x.index, 'season'].values else None),
-                        minwinter=('measure_value', lambda x: x[df.loc[x.index, 'season'] == 'Winter'].min() if 'Winter' in df.loc[x.index, 'season'].values else None)
+                    df_this_yr["measure_value"] = df_this_yr["measure_value"] / 10 
+                    df_this_yr["measure_year"] = year
+                    yearly_data = df_this_yr.groupby(["station_id", "measure_year"]).agg(
+                        # Annual average for TMAX and TMIN
+                        max_year=('measure_value', lambda x: round(x[df_this_yr.loc[x.index, 'measure_type'] == 'TMAX'].mean(), 1)),
+                        min_year=('measure_value', lambda x: round(x[df_this_yr.loc[x.index, 'measure_type'] == 'TMIN'].mean(), 1)),
+                        # Seasonal averages for TMAX and TMIN
+                        maxspring=('measure_value', lambda x: round(x[(df_this_yr.loc[x.index, 'season'] == 'Spring') & (df_this_yr.loc[x.index, 'measure_type'] == 'TMAX')].mean(), 1) if 'Spring' in df_this_yr.loc[x.index, 'season'].values else None),
+                        minspring=('measure_value', lambda x: round(x[(df_this_yr.loc[x.index, 'season'] == 'Spring') & (df_this_yr.loc[x.index, 'measure_type'] == 'TMIN')].mean(), 1)  if 'Spring' in df_this_yr.loc[x.index, 'season'].values else None),
+                        maxsummer=('measure_value', lambda x: round(x[(df_this_yr.loc[x.index, 'season'] == 'Summer') & (df_this_yr.loc[x.index, 'measure_type'] == 'TMAX')].mean(), 1) if 'Summer' in df_this_yr.loc[x.index, 'season'].values else None),
+                        minsummer=('measure_value', lambda x: round(x[(df_this_yr.loc[x.index, 'season'] == 'Summer') & (df_this_yr.loc[x.index, 'measure_type'] == 'TMIN')].mean(), 1) if 'Summer' in df_this_yr.loc[x.index, 'season'].values else None),
+                        maxautumn=('measure_value', lambda x: round(x[(df_this_yr.loc[x.index, 'season'] == 'Autumn') & (df_this_yr.loc[x.index, 'measure_type'] == 'TMAX')].mean(), 1) if 'Autumn' in df_this_yr.loc[x.index, 'season'].values else None),
+                        minautumn=('measure_value', lambda x: round(x[(df_this_yr.loc[x.index, 'season'] == 'Autumn') & (df_this_yr.loc[x.index, 'measure_type'] == 'TMIN')].mean(), 1) if 'Autumn' in df_this_yr.loc[x.index, 'season'].values else None),
+                        maxwinter=('measure_value', lambda x: round(x[(df_this_yr.loc[x.index, 'season'] == 'Winter') & (df_this_yr.loc[x.index, 'measure_type'] == 'TMAX')].mean(), 1) if 'Winter' in df_this_yr.loc[x.index, 'season'].values else None),
+                        minwinter=('measure_value', lambda x: round(x[(df_this_yr.loc[x.index, 'season'] == 'Winter') & (df_this_yr.loc[x.index, 'measure_type'] == 'TMIN')].mean(), 1) if 'Winter' in df_this_yr.loc[x.index, 'season'].values else None)
                     ).reset_index()
-
                     data_to_insert = list(yearly_data.itertuples(index=False, name=None))
                     insert_query = """
                         INSERT INTO stationdata (station_id, measure_year, maxyear, minyear,maxspring,minspring, 
@@ -215,7 +228,6 @@ def insert_ghcn_by_year(year):
             except Exception as ex:
                 print(f"Fehler beim Verarbeiten der Datei: {ex}")
 
-
 def download_file(year):
     baseURLbyYear = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/by_year/PLACEHOLDER.csv.gz"
     print(f'Herunterladen der {year} Datei.')
@@ -227,8 +239,18 @@ def download_file(year):
     print("Herunterladen abgeschlossen")
     return io.BytesIO(response.content)
 
-def fill_database():
-    for year in range(2000,2024):
+def prepare_dataframe(file):
+    df = pd.read_csv(file, delimiter=",", header=None, usecols=[0, 1, 2, 3],
+                        names=["station_id", "measure_date", "measure_type", "measure_value"])
+    df = df[df["measure_type"].isin(["TMAX", "TMIN"])]
+    df["measure_date"] = pd.to_datetime(df["measure_date"].astype(str), format='%Y%m%d')
+    df["measure_year"] = df["measure_date"].dt.year    
+    return df
+
+
+def fill_database(start, end):
+    #TODO: prüfen warum Range nicht funktioniert hat
+    for year in range(start, end):
         with DatabaseConnection() as cursor:
             try:
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM stationdata where measure_year = %s)",[year])
@@ -240,11 +262,13 @@ def fill_database():
                 print(f"Fehler beim Verarbeiten der Datei: {ex}")
 
 #create_tables()
-#fill_database()
-#insert_ghcn_by_year("2024")
+#fill_database(1750, 2024)
 #get_ghcn_stations("./data/ghcnd-stations.csv")
+#### Ende Kopie in data.py
+
 
 # Benötigt, damit PostGIS aktiviert ist (nur einmalig, danach kommt sonst ein Fehler)
+# Kann das in die Funktion?
 with DatabaseConnection() as cursor:
     cursor.execute("SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'postgis');")
     postgis_installed = cursor.fetchone()[0]
