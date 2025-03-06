@@ -171,6 +171,8 @@
                 var lon = $("#longitude").val();
                 var radius = $("#rangeradiusinput").val();
                 var station_count = $("#rangestationinput").val();
+                let datefrom = $("#datefrom").val();
+                let dateto = $("#dateto").val();
                 $.ajax({
                         url: '/get_stations',
                         method: 'GET',
@@ -178,7 +180,9 @@
                             lat: lat,
                             lon: lon,
                             radius: radius,
-                            stations: station_count
+                            stations: station_count,
+                            datefrom:datefrom,
+                            dateto:dateto
                         },
                         success: function(response) {
                             fillMapData(response)
