@@ -346,5 +346,5 @@ def get_stations_within_radius(lat_ref, lon_ref, radius, number,year_from,year_t
     return stations
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
 
