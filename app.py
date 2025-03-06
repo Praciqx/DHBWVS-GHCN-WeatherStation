@@ -85,7 +85,7 @@ def get_station_data():
 
     df = pd.DataFrame(fetcheddata, columns=["year","max","min","springmax","springmin","summermax","summermin","autumnmax","autumnmin","wintermax","wintermin"])
     df = df.where(pd.notna(df), 0)
-    # Struktur für Charts
+    # Struktur für Charts 
     data = {
         "years": df["year"].tolist(),
         "seasons": {
