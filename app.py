@@ -87,7 +87,7 @@ def get_station_data():
             CASE WHEN latitude >= 0 THEN minwinter ELSE minsummer END AS min_winter
         FROM stationdata 
         JOIN station ON stationdata.station_id = station.station_id
-        WHERE stationdata.station_id = %s AND measure_year BETWEEN %s AND %s;
+        WHERE stationdata.station_id = %s AND measure_year BETWEEN %s AND %s and measure_year between measure_from and measure_to;
     """
 
     with DatabaseConnection() as cursor:
