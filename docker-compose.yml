@@ -1,6 +1,6 @@
 services:
   app:  
-    inmage: ghcr.io/praciqx/weatherstation-image:latest
+    image: ghcr.io/praciqx/weatherstation-image:latest
     ports:
       - 5000:5000
     restart: on-failure
