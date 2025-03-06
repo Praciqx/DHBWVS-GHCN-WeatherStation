@@ -95,8 +95,12 @@ def get_station_data():
         fetcheddata = cursor.fetchall()
         cursor.connection.commit()
         
+    if not fetcheddata:
+        return jsonify({"error":f"Von der Station {stationid} wurden im Jahresbereich von {datefrom} bis {dateto} keine Daten gefunden."}),404
+
     df = pd.DataFrame(fetcheddata, columns=["year","max","min","springmax","springmin","summermax","summermin","autumnmax","autumnmin","wintermax","wintermin"])
-    # Struktur für Charts
+    df = df.where(pd.notna(df), 0)
+    # Struktur für Charts 
     data = {
         "years": df["year"].tolist(),
         "seasons": {
