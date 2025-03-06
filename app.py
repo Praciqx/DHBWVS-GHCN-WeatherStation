@@ -72,7 +72,18 @@ def get_station_data():
     dateto = request.args.get('dateto', type=int)
 
     query = """
-        SELECT measure_year, maxyear,minyear,maxspring,minspring,maxsummer,minsummer,maxautumn,minautumn,maxwinter,minwinter FROM stationdata where station_id = %s and measure_year between %s and %s;
+        SELECT measure_year, maxyear, minyear, 
+            CASE WHEN latitude >= 0 THEN maxspring ELSE maxautumn END AS max_spring,
+            CASE WHEN latitude >= 0 THEN minspring ELSE minautumn END AS min_spring,
+            CASE WHEN latitude >= 0 THEN maxsummer ELSE maxwinter END AS max_summer,
+            CASE WHEN latitude >= 0 THEN minsummer ELSE minwinter END AS min_summer,
+            CASE WHEN latitude >= 0 THEN maxautumn ELSE maxspring END AS max_autumn,
+            CASE WHEN latitude >= 0 THEN minautumn ELSE minspring END AS min_autumn,
+            CASE WHEN latitude >= 0 THEN maxwinter ELSE maxsummer END AS max_winter,
+            CASE WHEN latitude >= 0 THEN minwinter ELSE minsummer END AS min_winter
+        FROM stationdata 
+        JOIN station ON stationdata.station_id = station.station_id
+        WHERE stationdata.station_id = %s AND measure_year BETWEEN %s AND %s;
     """
 
     with DatabaseConnection() as cursor:
