@@ -34,7 +34,7 @@ def index():
 def getMinMaxYear():
     return {
         "maxYear":2024,
-        "minYear":1755
+        "minYear":1750
     }
 
 @app.route('/get_stations')
