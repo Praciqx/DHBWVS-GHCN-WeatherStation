@@ -99,7 +99,7 @@ def get_station_data():
         return jsonify({"error":f"Von der Station {stationid} wurden im Jahresbereich von {datefrom} bis {dateto} keine Daten gefunden."}),404
 
     df = pd.DataFrame(fetcheddata, columns=["year","max","min","springmax","springmin","summermax","summermin","autumnmax","autumnmin","wintermax","wintermin"])
-    df = df.where(pd.notna(df), 0)
+    df = df.where(pd.notna(df), None)
     # Struktur für Charts 
     data = {
         "years": df["year"].tolist(),
@@ -261,13 +261,15 @@ def insert_ghcn_by_year(year):
 def download_file(year):
     baseURLbyYear = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/by_year/PLACEHOLDER.csv.gz"
     print(f'Herunterladen der {year} Datei.')
-    baseURLbyYear = baseURLbyYear.replace("PLACEHOLDER",year)
-    print(baseURLbyYear)
-    response = requests.get(baseURLbyYear)
-    print(response)
-    response.raise_for_status()
-    print("Herunterladen abgeschlossen")
-    return io.BytesIO(response.content)
+    baseURLbyYear = baseURLbyYear.replace("PLACEHOLDER", year)
+    try:
+        response = requests.get(baseURLbyYear)
+        response.raise_for_status() 
+        print("Herunterladen abgeschlossen")
+        return io.BytesIO(response.content)  
+    except requests.exceptions.RequestException as e:
+        print(f"Fehler beim Herunterladen von {year}: {e}")
+        return None 
 
 def prepare_dataframe(file):
     df = pd.read_csv(file, delimiter=",", header=None, usecols=[0, 1, 2, 3],
@@ -337,12 +339,12 @@ def get_stations_within_radius(lat_ref, lon_ref, radius, number,year_from,year_t
         ELSE station_name 
     END AS station_name, ROUND(CAST(ST_Distance(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) / 1000 AS NUMERIC), 2) AS distance, latitude, longitude
     FROM station
-    WHERE ST_DWithin(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, %s * 1000) AND measure_from between %s and %s
+    WHERE ST_DWithin(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, %s * 1000) AND (measure_from <= %s and measure_to >= %s)
     ORDER BY distance
     LIMIT %s;
     """
     with DatabaseConnection() as cursor:
-        cursor.execute(query, (lat_ref, lon_ref, lon_ref, lat_ref, lon_ref, lat_ref, radius, number,year_from,year_to))
+        cursor.execute(query, (lat_ref, lon_ref, lon_ref, lat_ref, lon_ref, lat_ref, radius, year_from,year_to,number))
         stations = cursor.fetchall()
         cursor.connection.commit()
     stations = [(station_id, station_name, float(distance), latitude, longitude) for station_id, station_name, distance, latitude, longitude in stations] # Convert distance from Decimal (needed for ROUND) to float.
