@@ -36,8 +36,10 @@
                                         <label for="rangeradius" class="form-label">Radius</label>
                                         <div class="d-flex align-items-center">
                                             <input type="range" class="form-range me-3 ranger radius" min="1" max="100" step="1" id="rangeradius" oninput="rangeradiusinput.value=rangeradius.value" required>
-                                            <input type="number" oninput="validity.valid||(value='');" min="1" max="100" step="1" id="rangeradiusinput" class="form-control form-control-sm text-center w-25 rangerinput" value="50" oninput="rangeradius.value=rangeradiusinput.value" required>
-                                            <div class="invalid-feedback">Bitte wählen Sie einen Radius von 1 bis 100 aus.</div>
+                                            <div class="input-group">
+                                                <input type="number" oninput="validity.valid||(value='');" min="1" max="100" step="1" id="rangeradiusinput" class="form-control form-control-sm text-center w-25 rangerinput" value="50" oninput="rangeradius.value=rangeradiusinput.value" required>
+                                                <div class="invalid-feedback">Bitte wählen Sie einen Radius von 1 bis 100 aus.</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -48,8 +50,10 @@
                                         <label for="rangestation" class="form-label">Station</label>
                                         <div class="d-flex align-items-center">
                                             <input type="range" class="form-range me-3 ranger station" min="1" max="10" step="1" id="rangestation" oninput="rangestationinput.value=rangestation.value" required>
-                                            <input type="number" id="rangestationinput" min="0" max="10" step="1" oninput="validity.valid||(value='');" class="form-control form-control-sm text-center w-25 rangerinput" value="5" oninput="rangestation.value=rangestationinput.value" required>
-                                            <div class="invalid-feedback">Bitte wählen Sie einen Stationen von 1 bis 10 aus.</div>
+                                            <div class="input-group">
+                                                <input type="number" id="rangestationinput" min="0" max="10" step="1" oninput="validity.valid||(value='');" class="form-control form-control-sm text-center w-25 rangerinput" value="5" oninput="rangestation.value=rangestationinput.value" required>
+                                                <div class="invalid-feedback">Bitte wählen Sie eine Stationsanzahl von 1 bis 10 aus.</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
