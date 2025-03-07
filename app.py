@@ -261,13 +261,15 @@ def insert_ghcn_by_year(year):
 def download_file(year):
     baseURLbyYear = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/by_year/PLACEHOLDER.csv.gz"
     print(f'Herunterladen der {year} Datei.')
-    baseURLbyYear = baseURLbyYear.replace("PLACEHOLDER",year)
-    print(baseURLbyYear)
-    response = requests.get(baseURLbyYear)
-    print(response)
-    response.raise_for_status()
-    print("Herunterladen abgeschlossen")
-    return io.BytesIO(response.content)
+    baseURLbyYear = baseURLbyYear.replace("PLACEHOLDER", year)
+    try:
+        response = requests.get(baseURLbyYear)
+        response.raise_for_status() 
+        print("Herunterladen abgeschlossen")
+        return io.BytesIO(response.content)  
+    except requests.exceptions.RequestException as e:
+        print(f"Fehler beim Herunterladen von {year}: {e}")
+        return None 
 
 def prepare_dataframe(file):
     df = pd.read_csv(file, delimiter=",", header=None, usecols=[0, 1, 2, 3],
