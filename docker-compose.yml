@@ -16,7 +16,7 @@ services:
       POSTGRES_PASSWORD: secretpassword
       POSTGRES_DB: dhbwvsghcn
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ./database:/var/lib/postgresql/data
     cpus: 2
     mem_limit: 1g
   adminer:
@@ -25,5 +25,3 @@ services:
       - 8080:8080
     cpus: 2
     mem_limit: 1g
-volumes:
-  db_data:
