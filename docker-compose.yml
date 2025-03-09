@@ -9,6 +9,11 @@ services:
     command: python app.py
     cpus: 2
     mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; r = requests.get('http://app:5000'); exit(1) if r.status_code != 200 else exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
   db:
     image: postgis/postgis:latest
     environment:
@@ -19,9 +24,8 @@ services:
       - ./database:/var/lib/postgresql/data
     cpus: 2
     mem_limit: 1g
-  adminer:
-    image: adminer
-    ports:
-      - 8080:8080
-    cpus: 2
-    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "admin", "-d", "dhbwvsghcn"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
