@@ -4,3 +4,4 @@ SQLAlchemy==2.0.38
 python-dotenv==1.0.1
 psycopg2-binary
 pandas
+pytest
