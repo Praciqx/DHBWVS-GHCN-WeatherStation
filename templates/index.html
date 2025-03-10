@@ -60,12 +60,13 @@
                             </div>
                             <div class="col-6 text-center">
                                 <label for="datefrom">Von (Jahr)</label>
-                                <input class="form-control form-control-sm datefrom" type="number" max="{{ year_range.maxYear }}" min="{{ year_range.minYear }}" id="datefrom" name="datefrom" required>
+                                <input class="form-control form-control-sm datefrom" type="number" max="{{ year_range.maxYear }}" min="{{ year_range.minYear }}" id="datefrom" oninput="validateYears()" name="datefrom" required>
                                 <div class="invalid-feedback">Bitte wählen Sie ein gültiges Jahr zwischen {{ year_range.minYear }} und {{ year_range.maxYear }} aus.</div>
+                                <div class="text-danger datefrom-error" style="display:none">Das Von (Jahr) darf nicht größer als das (Bis) Jahr sein. </div>
                             </div>
                             <div class="col-6 text-center">
                                 <label for="dateto">Bis (Jahr)</label>
-                                <input class="form-control form-control-sm dateto" type="number" max="{{ year_range.maxYear }}" min="{{ year_range.minYear }}" id="dateto" name="dateto" required>
+                                <input class="form-control form-control-sm dateto" type="number" max="{{ year_range.maxYear }}" min="{{ year_range.minYear }}" id="dateto" oninput="validateYears()" name="dateto" required>
                                 <div class="invalid-feedback">Bitte wählen Sie ein gültiges Jahr zwischen {{ year_range.minYear }} und {{ year_range.maxYear }} aus.</div>
                             </div>
                             <div class="text-center mx-auto pt-4">
@@ -147,6 +148,17 @@
         type: 'line',
         options: {
             plugins:{
+                tooltip:{
+                    callbacks:{
+                        label:function(element){
+                            let value = parseFloat(element.raw);
+                            if (!isNaN(value)) {
+                                return value.toFixed(1).replace(".", ",") + "°C"; 
+                            }
+                            return element.raw
+                        }
+                    }
+                },
                 legend:{
                     labels:{
                         usePointStyle:true,
@@ -169,8 +181,9 @@
     $(function() {
         $('#weatherinputForm').on('submit', function(e){
             e.preventDefault();
-            if (!this.checkValidity()) {
+            if (!this.checkValidity() || !validateYears()) {
                 e.stopPropagation();
+                e.preventDefault();
             }else{
                 var lat = $("#latitude").val();
                 var lon = $("#longitude").val();
@@ -228,6 +241,20 @@
                     swal("Fehler", xhr.responseJSON.error, "error");
                 }
         });
+    }
+
+    function validateYears() {
+        let dateFrom = parseInt($("#datefrom").val(), 10);
+        let dateTo = parseInt($("#dateto").val(), 10);
+    
+        if (dateFrom > dateTo) {
+            $(".datefrom-error").show();
+            return false;
+        } else {
+            $(".datefrom-error").hide();
+            return true;
+        }
+        
     }
 
     function clearChartData(){
