@@ -11,11 +11,13 @@ Write-Host "Images werden heruntergeladen und Container erstellt."
 docker compose up -d
 while ($true) {
     try {
-        Invoke-WebRequest -Uri http://localhost:5000 -Method Head -TimeoutSec 10
-        Start-Process http://localhost:5000
-        break
+        $Response = Invoke-WebRequest -Uri http://localhost:5000 -Method Head -TimeoutSec 5
+        if ($Response.StatusCode -eq 200) {
+            Start-Process http://localhost:5000
+            break
+        }
     } catch {
         Write-Host "Anwendung wird gestartet..."
-        Start-Sleep -Seconds 5
     }
+    Start-Sleep -Seconds 5
 }
