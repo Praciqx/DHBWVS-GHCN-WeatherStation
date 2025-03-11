@@ -164,7 +164,7 @@ def get_stations_within_radius(params):
         list: A list of tuples, where each tuple contains:
               - station_id (str)
               - station_name (str)
-              - distance (float) in kilometers (rounded to 2 decimal places).
+              - distance (float) in kilometers (rounded to 1 decimal place).
     """
     query = """
     SELECT station_id, CASE 
