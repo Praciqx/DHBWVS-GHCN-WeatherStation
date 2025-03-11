@@ -1,6 +1,6 @@
 # Variables
 $directoryPath = ".\WeatherStation"
-$databaseDownloadUrl = "https://www.swisstransfer.com/api/download/d98ded26-7923-4196-a14b-d49ca872d839"
+$databaseDownloadUrl = "https://www.swisstransfer.com/api/download/5050501b-e2f8-446f-8efe-e5497f965fef"
 $databaseZipPath = ".\database.zip"
 $databaseExtractPath = ".\database"
 $dockerComposeUrl = "https://raw.githubusercontent.com/Praciqx/DHBWVS-GHCN-WeatherStation/main/docker-compose.yml"
