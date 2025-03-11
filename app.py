@@ -1,16 +1,8 @@
 from flask import Flask, render_template, request,jsonify,render_template_string
-import folium
 import psycopg2
-from folium.map import Marker
 from jinja2 import Template
-import gzip
-import io
 import pandas as pd
-import requests
-from psycopg2.extras import execute_values
 import json
-import csv
-
 
 def create_app(test_mode = None):
     app = Flask(__name__)
