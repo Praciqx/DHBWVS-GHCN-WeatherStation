@@ -142,9 +142,10 @@ def fetch_station_data(params):
     fetcheddata = cursor.fetchall()
 
     df = pd.DataFrame(fetcheddata, columns=["year","max","min","springmax","springmin","summermax","summermin","autumnmax","autumnmin","wintermax","wintermin"])
+    all_years = pd.DataFrame({"year": list(range(params["datefrom"], params["dateto"] + 1))})
+    df = all_years.merge(df, on="year", how="left")
     df = df.where(pd.notna(df), None)
 
-    
     return df
 
 def get_stations_within_radius(params):

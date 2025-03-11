@@ -16,8 +16,8 @@
         {% for row in data %}
         <tr>
             <td class="text-right">{{ row.year }}</td>
-            <td class="text-right">{{ row.min }}</td>
-            <td class="text-right">{{ row.max }}</td>
+            <td class="text-right">{{ row.min if row.min is not none else '-' }}</td>
+            <td class="text-right">{{ row.max if row.max is not none else '-' }}</td>
         </tr>
         {% endfor %}
     </tbody>
