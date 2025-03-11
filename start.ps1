@@ -1,7 +1,11 @@
 # Variables
 $directoryPath = ".\WeatherStation"
-$dockerComposeUrl = "https://raw.githubusercontent.com/Praciqx/DHBWVS-GHCN-WeatherStation/main/docker-compose.yml"
 $databaseDownloadUrl = "https://www.swisstransfer.com/api/download/d98ded26-7923-4196-a14b-d49ca872d839"
+$databaseZipPath = ".\database.zip"
+$databaseExtractPath = ".\database"
+$dockerComposeUrl = "https://raw.githubusercontent.com/Praciqx/DHBWVS-GHCN-WeatherStation/main/docker-compose.yml"
+$dockerComposePath = ".\docker-compose.yml"
+$webAppUrl = "http://localhost:5000"
 
 # Remove existing directory if it exists
 if (Test-Path $directoryPath) {
@@ -13,32 +17,46 @@ New-Item -Path $directoryPath -ItemType Directory | Out-Null
 Set-Location $directoryPath
 
 # Download the database
-Write-Host "Datenbank wird heruntergeladen."
-Invoke-WebRequest -Uri $databaseDownloadUrl -OutFile ".\database.zip"
+Write-Host "Datenbank wird heruntergeladen..."
+try {
+    Invoke-WebRequest -Uri $databaseDownloadUrl -OutFile $databaseZipPath -ErrorAction Stop
+} catch {
+    Write-Host "Fehler beim Herunterladen der Datenbank."
+    exit 1
+}
 
 # Extract the database
-Write-Host "Datenbank wird entpackt."
-Expand-Archive -Path ".\database.zip" -DestinationPath ".\database" -Force
-Expand-Archive -Path ".\database\database.zip" -DestinationPath . -Force
+Write-Host "Datenbank wird entpackt..."
+Expand-Archive -Path $databaseZipPath -DestinationPath $databaseExtractPath -Force
+Expand-Archive -Path "$databaseExtractPath\database.zip" -DestinationPath . -Force
 
 # Download the docker-compose file
-Invoke-WebRequest -Uri $dockerComposeUrl -OutFile ".\docker-compose.yml"
+Write-Host "docker-compose.yml wird heruntergeladen..."
+try {
+    Invoke-WebRequest -Uri $dockerComposeUrl -OutFile $dockerComposePath -ErrorAction Stop
+} catch {
+    Write-Host "Fehler beim Herunterladen der docker-compose.yml."
+    exit 1
+}
 
 # Pull Docker images and start containers
-Write-Host "Images werden heruntergeladen und Container erstellt."
+Write-Host "Images werden heruntergeladen und Container erstellt..."
 docker compose up -d
 
 # Remove unnecessary files
-Remove-Item ".\database.zip"
-Remove-Item ".\database\database.zip"
-Remove-Item ".\docker-compose.yml"
+Write-Host "Installationsdateien werden entfernt..."
+Remove-Item $databaseZipPath
+Remove-Item "$databaseExtractPath\database.zip"
+Remove-Item $dockerComposePath
 
 # Wait for the web application to start and then open it
+Write-Host "Warte auf den Start der Anwendung..."
 while ($true) {
     try {
-        $response = Invoke-WebRequest -Uri http://localhost:5000 -Method Head -TimeoutSec 5
+        $response = Invoke-WebRequest -Uri $webAppUrl -Method Head -TimeoutSec 5
         if ($response.StatusCode -eq 200) {
-            Start-Process http://localhost:5000
+            Write-Host "Anwendung erfolgreich gestartet!"
+            Start-Process $webAppUrl
             break
         }
     } catch {
