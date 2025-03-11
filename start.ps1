@@ -4,7 +4,7 @@ if (Test-Path ".\WeatherStation") {
 New-Item -Path ".\WeatherStation" -ItemType Directory
 Set-Location .\WeatherStation
 Write-Host "Datenbank wird heruntergeladen."
-Invoke-WebRequest -Uri https://www.swisstransfer.com/d/5050501b-e2f8-446f-8efe-e5497f965fef -OutFile .\database.zip
+Invoke-WebRequest -Uri https://www.swisstransfer.com/api/download/5050501b-e2f8-446f-8efe-e5497f965fef -OutFile .\database.zip
 Write-Host "Datenbank wird entpackt."
 Expand-Archive -Path .\database.zip -DestinationPath .\database -Force
 Expand-Archive -Path .\database/database.zip -DestinationPath . -Force
