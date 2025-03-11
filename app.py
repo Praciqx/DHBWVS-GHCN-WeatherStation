@@ -171,7 +171,7 @@ def get_stations_within_radius(params):
         WHEN latitude = %s AND longitude = %s 
         THEN station_name || ' (Zentrum)' 
         ELSE station_name 
-    END AS station_name, ROUND(CAST(ST_Distance(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) / 1000 AS NUMERIC), 2) AS distance, latitude, longitude
+    END AS station_name, ROUND(CAST(ST_Distance(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) / 1000 AS NUMERIC), 1) AS distance, latitude, longitude
     FROM station
     WHERE ST_DWithin(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, %s * 1000) AND (measure_from <= %s and measure_to >= %s)
     ORDER BY distance
