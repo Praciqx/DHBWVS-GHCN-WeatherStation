@@ -35,7 +35,7 @@ def create_app(test_mode = None):
                 "lat": station_lat,
                 "lon": station_lon,
                 "address": station_name,
-                "km": f"{distance}km"
+                "km": f"{distance} km"
             })
             
         stations_data = {
