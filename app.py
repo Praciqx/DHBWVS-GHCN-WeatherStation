@@ -27,7 +27,7 @@ def create_app(test_mode = None):
                 "lat": station_lat,
                 "lon": station_lon,
                 "address": station_name,
-                "km": f"{distance}km"
+                "km": f"{distance} km"
             })
             
         stations_data = {
@@ -134,9 +134,10 @@ def fetch_station_data(params):
     fetcheddata = cursor.fetchall()
 
     df = pd.DataFrame(fetcheddata, columns=["year","max","min","springmax","springmin","summermax","summermin","autumnmax","autumnmin","wintermax","wintermin"])
+    all_years = pd.DataFrame({"year": list(range(params["datefrom"], params["dateto"] + 1))})
+    df = all_years.merge(df, on="year", how="left")
     df = df.where(pd.notna(df), None)
 
-    
     return df
 
 def get_stations_within_radius(params):
@@ -156,14 +157,14 @@ def get_stations_within_radius(params):
         list: A list of tuples, where each tuple contains:
               - station_id (str)
               - station_name (str)
-              - distance (float) in kilometers (rounded to 2 decimal places).
+              - distance (float) in kilometers (rounded to 1 decimal place).
     """
     query = """
     SELECT station_id, CASE 
         WHEN latitude = %s AND longitude = %s 
         THEN station_name || ' (Zentrum)' 
         ELSE station_name 
-    END AS station_name, ROUND(CAST(ST_Distance(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) / 1000 AS NUMERIC), 2) AS distance, latitude, longitude
+    END AS station_name, ROUND(CAST(ST_Distance(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography) / 1000 AS NUMERIC), 1) AS distance, latitude, longitude
     FROM station
     WHERE ST_DWithin(station_point, ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography, %s * 1000) AND (measure_from <= %s and measure_to >= %s)
     ORDER BY distance
