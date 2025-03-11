@@ -25,14 +25,14 @@
             {% for row in data %}
             <tr>
                 <td>{{ row.year }}</td>
-                <td>{{ row.springmin if row.springmin is not none else '' }}</td>
-                <td>{{ row.springmax if row.springmax is not none else '' }}</td>
-                <td>{{ row.summermin if row.summermin is not none else '' }}</td>
-                <td>{{ row.summermax if row.summermax is not none else '' }}</td>
-                <td>{{ row.autumnmin if row.autumnmin is not none else '' }}</td>
-                <td>{{ row.autumnmax if row.autumnmax is not none else '' }}</td>
-                <td>{{ row.wintermin if row.wintermin is not none else '' }}</td>
-                <td>{{ row.wintermax if row.wintermax is not none else '' }}</td>
+                <td>{{ row.springmin if row.springmin is not none else '-' }}</td>
+                <td>{{ row.springmax if row.springmax is not none else '-' }}</td>
+                <td>{{ row.summermin if row.summermin is not none else '-' }}</td>
+                <td>{{ row.summermax if row.summermax is not none else '-' }}</td>
+                <td>{{ row.autumnmin if row.autumnmin is not none else '-' }}</td>
+                <td>{{ row.autumnmax if row.autumnmax is not none else '-' }}</td>
+                <td>{{ row.wintermin if row.wintermin is not none else '-' }}</td>
+                <td>{{ row.wintermax if row.wintermax is not none else '-' }}</td>
             </tr>
             {% endfor %}
         </tbody>
