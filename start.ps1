@@ -41,6 +41,7 @@ try {
 
 # Pull Docker images and start containers
 Write-Host "Images werden heruntergeladen und Container erstellt..."
+docker compose pull
 docker compose up -d
 
 # Remove unnecessary files
