@@ -302,8 +302,8 @@ def insert_ghcn_by_year(year):
                 
                 yearly_data = df_only_this_yr.groupby(["station_id", "measure_year"]).agg(
                     # Annual average for TMAX and TMIN
-                    max_year=('measure_value', lambda x: round(x[df_only_this_yr.loc[x.index, 'measure_type'] == 'TMAX'].mean(), 1)),
-                    min_year=('measure_value', lambda x: round(x[df_only_this_yr.loc[x.index, 'measure_type'] == 'TMIN'].mean(), 1)),
+                    max_year=('measure_value', lambda x: round(x[df_only_this_yr.loc[x.index, 'measure_type'] == 'TMAX'].mean(), 1) if not x.empty else None),
+                    min_year=('measure_value', lambda x: round(x[df_only_this_yr.loc[x.index, 'measure_type'] == 'TMIN'].mean(), 1) if not x.empty else None),
                 )
 
                 seasonal_data = df_this_yr.groupby(["station_id", "measure_year"]).agg(
@@ -319,42 +319,20 @@ def insert_ghcn_by_year(year):
                 )
                 
                 # Merging the results
-                yearly_data = pd.merge(yearly_data, seasonal_data, on=["station_id", "measure_year"]).reset_index()
+                merged_yearly_data = pd.merge(yearly_data, seasonal_data, on=["station_id", "measure_year"]).reset_index()
+                data_to_insert = list(merged_yearly_data.itertuples(index=False, name=None))
+                insert_query = """
+                    INSERT INTO stationdata (station_id, measure_year, maxyear, minyear,maxspring,minspring, 
+                    maxsummer, minsummer, maxautumn, minautumn, maxwinter, minwinter)
+                    VALUES %s
+                    ON CONFLICT (station_id, measure_year) 
+                    DO NOTHING;
+                """
+                execute_values(cursor, insert_query, data_to_insert)      
+                cursor.connection.commit()
+            print("Daten erfolgreich in die Datenbank eingefügt.", flush=True)
         except Exception as ex:
             print(f"Fehler beim Verarbeiten der Datei: {ex}", flush=True)
-
-    #If only previous year is available
-    if gzipped_file_last_yr and not gzipped_file_this_yr:
-        with gzip.open(gzipped_file_last_yr, "rt", encoding="utf-8") as f2:
-            df_last_yr = prepare_dataframe(f2)
-            december_last_yr = df_last_yr[df_last_yr["measure_date"].dt.month == 12]
-            december_last_yr["measure_value"] = december_last_yr["measure_value"] / 10 
-            december_last_yr["measure_year"] = int(year)
-            december_last_yr.reset_index(drop=True, inplace=True)
-            yearly_data = december_last_yr.groupby(["station_id", "measure_year"]).agg(
-                    max_year = None,
-                    min_year = None,
-                    maxspring= None,
-                    minspring= None,
-                    maxsummer= None,
-                    minsummer= None,
-                    maxautumn= None,
-                    minautumn= None,
-                    maxwinter=('measure_value', lambda x: round(x[december_last_yr.loc[x.index, 'measure_type'] == 'TMAX'].mean(), 1)),
-                    minwinter=('measure_value', lambda x: round(x[december_last_yr.loc[x.index, 'measure_type'] == 'TMIN'].mean(), 1)),
-                )            
-
-    data_to_insert = list(yearly_data.itertuples(index=False, name=None))
-    insert_query = """
-        INSERT INTO stationdata (station_id, measure_year, maxyear, minyear,maxspring,minspring, 
-        maxsummer, minsummer, maxautumn, minautumn, maxwinter, minwinter)
-        VALUES %s
-        ON CONFLICT (station_id, measure_year) 
-        DO NOTHING;
-    """
-    execute_values(cursor, insert_query, data_to_insert)      
-    cursor.connection.commit()
-    print("Daten erfolgreich in die Datenbank eingefügt.", flush=True)
 
 def download_file(year):
     baseURLbyYear = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/by_year/PLACEHOLDER.csv.gz"
@@ -378,7 +356,6 @@ def prepare_dataframe(file):
     return df
 
 def fill_database(start, end):
-    #TODO: prüfen warum Range nicht funktioniert hat
     for year in range(start, end):
         cursor = get_db_connection()
         try:
