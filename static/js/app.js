@@ -90,7 +90,7 @@ window.fillMapData = function(stationjson) {
 
     if (!selectedStationIsCenter) {
         let marker = L.marker([center.lat, center.lon]).addTo(markersLayer);
-        marker.bindPopup(`<b>Zentrum:</b> ${center.address}`);
+        marker.bindPopup(`${center.address}`);
         marker._icon.style.filter = "hue-rotate(120deg)";
     }
 }
