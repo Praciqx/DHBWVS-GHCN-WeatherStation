@@ -1,0 +1,16 @@
+{
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "chart.js": "^4.4.8",
+    "jsdom": "^26.0.0",
+    "leaflet": "^1.9.4",
+    "mocha": "^11.1.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "jquery": "^3.7.1"
+  },
+  "type": "module"
+}

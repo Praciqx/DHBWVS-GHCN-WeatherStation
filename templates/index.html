@@ -60,13 +60,13 @@
                             </div>
                             <div class="col-6 text-center">
                                 <label for="datefrom">Von (Jahr)</label>
-                                <input class="form-control form-control-sm datefrom" type="number" max="{{ year_range.maxYear }}" min="{{ year_range.minYear }}" id="datefrom" oninput="validateYears()" name="datefrom" required>
+                                <input class="form-control form-control-sm datefrom" type="number" max="{{ year_range.maxYear }}" min="{{ year_range.minYear }}" id="datefrom" name="datefrom" required>
                                 <div class="invalid-feedback">Bitte wählen Sie ein gültiges Jahr zwischen {{ year_range.minYear }} und {{ year_range.maxYear }} aus.</div>
                                 <div class="text-danger datefrom-error" style="display:none">Das Von (Jahr) darf nicht größer als das (Bis) Jahr sein. </div>
                             </div>
                             <div class="col-6 text-center">
                                 <label for="dateto">Bis (Jahr)</label>
-                                <input class="form-control form-control-sm dateto" type="number" max="{{ year_range.maxYear }}" min="{{ year_range.minYear }}" id="dateto" oninput="validateYears()" name="dateto" required>
+                                <input class="form-control form-control-sm dateto" type="number" max="{{ year_range.maxYear }}" min="{{ year_range.minYear }}" id="dateto" name="dateto" required>
                                 <div class="invalid-feedback">Bitte wählen Sie ein gültiges Jahr zwischen {{ year_range.minYear }} und {{ year_range.maxYear }} aus.</div>
                             </div>
                             <div class="text-center mx-auto pt-4">
@@ -140,4 +140,46 @@
         </div>
     </div>
 </div>
+<script>
+  $(function() {
+    $('#weatherinputForm').on('submit', function(e){
+        e.preventDefault();
+        if (!this.checkValidity() || !validateYears(parseInt($("#datefrom").val(), 10),parseInt($("#dateto").val(), 10))) {
+            e.stopPropagation();
+            e.preventDefault();
+        }else{
+            var lat = $("#latitude").val();
+            var lon = $("#longitude").val();
+            var radius = $("#rangeradiusinput").val();
+            var station_count = $("#rangestationinput").val();
+            let datefrom = $("#datefrom").val();
+            let dateto = $("#dateto").val();
+            $.ajax({
+                    url: '/get_stations',
+                    method: 'GET',
+                    data: {
+                        lat: lat,
+                        lon: lon,
+                        radius: radius,
+                        stations: station_count,
+                        datefrom:datefrom,
+                        dateto:dateto
+                    },
+                    success: function(response) {
+                        fillMapData(response)
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Fehler beim Abrufen der Stationen:', status, error);
+                    }
+            });
+        }
+        $(this).addClass('was-validated');
+    });
+  });
+  $("#dateto, #datefrom").on("input",function(){
+    let dateFrom = parseInt($("#datefrom").val(), 10);
+    let dateTo = parseInt($("#dateto").val(), 10);
+    validateYears(dateFrom,dateTo);
+  })
+</script>
 {% endblock %}
