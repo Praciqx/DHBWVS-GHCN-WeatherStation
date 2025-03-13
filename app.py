@@ -160,7 +160,7 @@ def get_stations_within_radius(params):
               - distance (float) in kilometers (rounded to 1 decimal place).
     """
     query = """
-    SELECT station_id, CASE 
+    SELECT trim(station_id) as station_id, CASE 
         WHEN latitude = %s AND longitude = %s 
         THEN station_name || ' (Zentrum)' 
         ELSE station_name 
