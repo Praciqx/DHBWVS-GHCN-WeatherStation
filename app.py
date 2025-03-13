@@ -299,7 +299,6 @@ def insert_ghcn_by_year(year):
                 df_this_yr["measure_value"] = df_this_yr["measure_value"] / 10 
                 df_only_this_yr["measure_value"] = df_only_this_yr["measure_value"] / 10
                 df_this_yr["measure_year"] = int(year)
-                
                 yearly_data = df_only_this_yr.groupby(["station_id", "measure_year"]).agg(
                     # Annual average for TMAX and TMIN
                     max_year=('measure_value', lambda x: round(x[df_only_this_yr.loc[x.index, 'measure_type'] == 'TMAX'].mean(), 1) if not x.empty else None),
@@ -317,9 +316,8 @@ def insert_ghcn_by_year(year):
                     maxwinter=('measure_value', lambda x: round(x[(df_this_yr.loc[x.index, 'season'] == 'Winter') & (df_this_yr.loc[x.index, 'measure_type'] == 'TMAX')].mean(), 1) if 'Winter' in df_this_yr.loc[x.index, 'season'].values else None),
                     minwinter=('measure_value', lambda x: round(x[(df_this_yr.loc[x.index, 'season'] == 'Winter') & (df_this_yr.loc[x.index, 'measure_type'] == 'TMIN')].mean(), 1) if 'Winter' in df_this_yr.loc[x.index, 'season'].values else None)
                 )
-                
                 # Merging the results
-                merged_yearly_data = pd.merge(yearly_data, seasonal_data, on=["station_id", "measure_year"]).reset_index()
+                merged_yearly_data = pd.merge(yearly_data, seasonal_data, on=["station_id", "measure_year"], how="outer").reset_index()
                 data_to_insert = list(merged_yearly_data.itertuples(index=False, name=None))
                 insert_query = """
                     INSERT INTO stationdata (station_id, measure_year, maxyear, minyear,maxspring,minspring, 
