@@ -34,7 +34,7 @@ def create_app(test_mode = None):
             "center": {
                 "lat": params["lat"],
                 "lon": params["lon"],
-                "adress": "Zentrum",
+                "address": "Zentrum",
                 "radius": params["radius"] * 1000 
             },
             "stations": stations
