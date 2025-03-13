@@ -86,8 +86,6 @@ window.fillMapData = function(stationjson) {
             </div>
         `);
     });
-
-
     if (!selectedStationIsCenter) {
         let marker = L.marker([center.lat, center.lon]).addTo(markersLayer);
         marker.bindPopup(`${center.address}`);
