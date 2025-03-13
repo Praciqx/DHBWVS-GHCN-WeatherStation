@@ -74,7 +74,7 @@ window.fillMapData = function(stationjson) {
             <span>
                 <b>Station: </b>${id}</br>
                 <b>Ort:</b> ${address}</br>
-                <b>Entfernung:</b> ${km} km</br>
+                <b>Entfernung:</b> ${km}</br>
                 <b>Längengrad:</b> ${lat}</br>
                 <b>Breitengrad:</b> ${lon}
             </span>
@@ -86,6 +86,7 @@ window.fillMapData = function(stationjson) {
             </div>
         `);
     });
+
 
     if (!selectedStationIsCenter) {
         let marker = L.marker([center.lat, center.lon]).addTo(markersLayer);
