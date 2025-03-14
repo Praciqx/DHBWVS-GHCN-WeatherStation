@@ -2,17 +2,17 @@
   <img src="https://raw.githubusercontent.com/Praciqx/DHBWVS-GHCN-WeatherStation/main/static/images/favicon.ico" width="10%">
 </p>
 
-<p align="center">
-  Eine Anwendung zur Suche und Analyse von Wetterstationsdaten anhand geografischer Koordinaten
-</p>
+# Wetteranwendung
 
-# Funktionen
+Eine Anwendung zur Suche und Analyse von Wetterstationsdaten anhand geografischer Koordinaten.
+
+## Funktionen
 - **Wetterstationen suchen** nach Breiten-/Längengrad & Radius
 - **Analyse der Temperaturdaten pro Jahr & Jahreszeit**
 - **Zeitraum frei wählbar**
 - **Grafische & tabellarische Darstellung**
 
-# Installation
+## Installation
 
 **Voraussetzung:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) muss installiert sein.
 
@@ -22,9 +22,9 @@ Danach einfach folgenden Befehl in einer PowerShell-Konsole ausführen:
 irm "https://raw.githubusercontent.com/Praciqx/DHBWVS-GHCN-WeatherStation/main/start.ps1" | iex
 ```
 
-Dies erstellt automatisch den Ordner `WeatherStation` und startet die Anwendung.
+Dies erstellt automatisch den Ordner `WeatherStation` zur Ablage der Datenbank und startet die Anwendung.
 
-# Nutzung
+## Nutzung
 
 Nach der Installation ist die Anwendung unter [http://localhost:5000](http://localhost:5000) erreichbar.
 
