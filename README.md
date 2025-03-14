@@ -4,7 +4,7 @@
 
 Eine Anwendung zur Suche und Analyse von Wetterstationsdaten anhand geografischer Koordinaten.
 
-# Funktionen:
+# Funktionen
 - **Wetterstationen suchen** nach Breiten-/Längengrad & Radius
 - **Analyse der Temperaturdaten pro Jahr & Jahreszeit**
 - **Zeitraum frei wählbar**
