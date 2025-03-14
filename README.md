@@ -1,8 +1,10 @@
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/fd57cad5-49a1-4629-8ad5-ac08e06f28fd" width="100%">
+  <img src="https://raw.githubusercontent.com/Praciqx/DHBWVS-GHCN-WeatherStation/main/static/images/favicon.ico" width="10%">
 </p>
 
-Eine Anwendung zur Suche und Analyse von Wetterstationsdaten anhand geografischer Koordinaten.
+<p align="center">
+  Eine Anwendung zur Suche und Analyse von Wetterstationsdaten anhand geografischer Koordinaten
+</p>
 
 # Funktionen
 - **Wetterstationen suchen** nach Breiten-/Längengrad & Radius
