@@ -62,7 +62,7 @@
                                 <label for="datefrom">Von (Jahr)</label>
                                 <input class="form-control form-control-sm datefrom" type="number" max="{{ year_range.maxYear }}" min="{{ year_range.minYear }}" id="datefrom" name="datefrom" required>
                                 <div class="invalid-feedback">Bitte wählen Sie ein gültiges Jahr zwischen {{ year_range.minYear }} und {{ year_range.maxYear }} aus.</div>
-                                <div class="text-danger datefrom-error" style="display:none">Das Von (Jahr) darf nicht größer als das (Bis) Jahr sein. </div>
+                                <div class="text-danger datefrom-error" style="display:none">Das Startjahr darf nicht größer als das Endjahr sein. </div>
                             </div>
                             <div class="col-6 text-center">
                                 <label for="dateto">Bis (Jahr)</label>
@@ -166,7 +166,15 @@
                         dateto:dateto
                     },
                     success: function(response) {
-                        fillMapData(response)
+                        if(response.stations.length > 0){
+                          fillMapData(response)
+                        }else{
+                          Swal.fire({
+                            icon: "error",
+                            title: "Keine Stationen gefunden!",
+                            text: "Im angegebenen Radius und unter Beachtung des Zeitraums wurden keine Stationen gefunden.",
+                          });
+                        }
                     },
                     error: function(xhr, status, error) {
                         console.error('Fehler beim Abrufen der Stationen:', status, error);
