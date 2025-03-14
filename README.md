@@ -14,7 +14,7 @@ Eine Anwendung zur Suche und Analyse von Wetterstationsdaten anhand geografische
 
 ## Installation
 
-**Voraussetzung:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) muss installiert sein.
+**Voraussetzung:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) muss installiert und gestartet sein.
 
 Danach einfach folgenden Befehl in einer PowerShell-Konsole ausführen:
 
