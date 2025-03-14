@@ -30,7 +30,7 @@ Nach der Installation ist die Anwendung unter [http://localhost:5000](http://loc
   <img src="https://github.com/user-attachments/assets/f2688063-9cc4-4b72-a5c6-5f6e46a31f8c" width="100%">
 </p>
 
-### **1️. Stationsauswahl**
+### **1️. Stationssuche**
 - Eingabe folgender Parameter: **Breitengrad, Längengrad, Radius, Anzahl Stationen & Zeitraum**
 - Suche starten
 
@@ -38,7 +38,7 @@ Nach der Installation ist die Anwendung unter [http://localhost:5000](http://loc
   <img src="https://github.com/user-attachments/assets/241e8513-197f-4be0-8104-c32a1c909af6" width="100%">
 </p>
 
-### **2️. Verfügbare Stationen anzeigen**
+### **2️. Stationsauswahl**
 Nach der Suche erscheinen alle gefundenen Stationen:
 
 <p align="center">
