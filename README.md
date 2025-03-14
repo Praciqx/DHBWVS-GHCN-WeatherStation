@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/fd57cad5-49a1-4629-8ad5-ac08e06f28fd" width="80%">
+  <img src="https://github.com/user-attachments/assets/fd57cad5-49a1-4629-8ad5-ac08e06f28fd" width="100%">
 </p>
 
 Eine Anwendung zur Suche und Analyse von Wetterstationsdaten anhand geografischer Koordinaten.
@@ -27,7 +27,7 @@ Dies erstellt automatisch den Ordner `WeatherStation` und startet die Anwendung.
 Nach der Installation ist die Anwendung unter [http://localhost:5000](http://localhost:5000) erreichbar.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/f2688063-9cc4-4b72-a5c6-5f6e46a31f8c" width="80%">
+  <img src="https://github.com/user-attachments/assets/f2688063-9cc4-4b72-a5c6-5f6e46a31f8c" width="100%">
 </p>
 
 ### **1️. Stationsauswahl**
@@ -35,14 +35,14 @@ Nach der Installation ist die Anwendung unter [http://localhost:5000](http://loc
 - Suche starten
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/241e8513-197f-4be0-8104-c32a1c909af6" width="80%">
+  <img src="https://github.com/user-attachments/assets/241e8513-197f-4be0-8104-c32a1c909af6" width="100%">
 </p>
 
 ### **2️. Verfügbare Stationen anzeigen**
 Nach der Suche erscheinen alle gefundenen Stationen:
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/b126b14c-fc66-45fb-8612-6032dc6502b9" width="80%">
+  <img src="https://github.com/user-attachments/assets/b126b14c-fc66-45fb-8612-6032dc6502b9" width="100%">
 </p>
 
 ### **3️. Datenanalyse**
@@ -51,13 +51,13 @@ Für jede Station stehen zwei Darstellungsarten zur Verfügung:
 - **Grafische Visualisierung** per Chart
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/886320a9-5e13-4da4-8853-5c10c0851dd9" width="80%">
+  <img src="https://github.com/user-attachments/assets/886320a9-5e13-4da4-8853-5c10c0851dd9" width="100%">
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/77658b7a-019c-449e-850a-30b02e3cc268" width="80%">
+  <img src="https://github.com/user-attachments/assets/77658b7a-019c-449e-850a-30b02e3cc268" width="100%">
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/c2a8a5bf-8cbd-4665-9a14-dece1bb11efb" width="80%">
+  <img src="https://github.com/user-attachments/assets/c2a8a5bf-8cbd-4665-9a14-dece1bb11efb" width="100%">
 </p>
