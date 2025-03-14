@@ -1,38 +1,9 @@
-#Diese Datei dient nur zur Gestaltung der Datenbefüllung
+#This file is only used to design the data filling
 import pandas as pd
 import gzip
 from psycopg2.extras import execute_values
 import io
 import requests
-
-def get_ghcn_data_by_year(year):
-    gzipped_file = download_file(year)
-    if gzipped_file:
-        cursor = get_db_connection()
-        try:
-            with gzip.open(gzipped_file, "rt", encoding="utf-8") as f:
-                df = pd.read_csv(f, delimiter=",", header=None, usecols=[0,1,2,3], names=["station_id", "measure_date", "measure_type", "measure_value"])
-                df = df[df["measure_type"].isin(["TMAX", "TMIN"])]
-
-                df = df
-
-                data_to_insert = list(df.itertuples(index=False, name=None))
-
-                insert_query = """
-                    INSERT INTO stationdata (station_id, measure_date, measure_type, measure_value)
-                    VALUES %s
-                    ON CONFLICT (station_id, measure_date, measure_type) 
-                    DO NOTHING
-                """
-
-                execute_values(cursor, insert_query, data_to_insert)
-
-            cursor.connection.commit()
-            print("Daten erfolgreich in die Datenbank eingefügt.", flush=True)
-        except Exception as ex:
-            print(f"Fehler beim Verarbeiten der Datei: {ex}", flush=True)
-
-
 
 def create_tables():
     cursor = get_db_connection()
@@ -64,7 +35,6 @@ def create_tables():
         cursor.connection.commit()
     except Exception as ex:
         print(ex, flush=True)
-
 
 def insert_ghcn_stations(csv_file_path, txt_file_path):
     cursor = get_db_connection()
@@ -114,8 +84,6 @@ def insert_ghcn_stations(csv_file_path, txt_file_path):
     except Exception as ex:
         print(f"Fehler beim Einfügen: {ex}", flush=True)
 
-
-
 def insert_ghcn_by_year(year):
     gzipped_file_this_yr = download_file(year)
     gzipped_file_last_yr = download_file(str(int(year)-1))
@@ -146,11 +114,10 @@ def insert_ghcn_by_year(year):
                 df_this_yr["measure_value"] = df_this_yr["measure_value"] / 10 
                 df_only_this_yr["measure_value"] = df_only_this_yr["measure_value"] / 10
                 df_this_yr["measure_year"] = int(year)
-                
                 yearly_data = df_only_this_yr.groupby(["station_id", "measure_year"]).agg(
                     # Annual average for TMAX and TMIN
-                    max_year=('measure_value', lambda x: round(x[df_only_this_yr.loc[x.index, 'measure_type'] == 'TMAX'].mean(), 1)),
-                    min_year=('measure_value', lambda x: round(x[df_only_this_yr.loc[x.index, 'measure_type'] == 'TMIN'].mean(), 1)),
+                    max_year=('measure_value', lambda x: round(x[df_only_this_yr.loc[x.index, 'measure_type'] == 'TMAX'].mean(), 1) if not x.empty else None),
+                    min_year=('measure_value', lambda x: round(x[df_only_this_yr.loc[x.index, 'measure_type'] == 'TMIN'].mean(), 1) if not x.empty else None),
                 )
 
                 seasonal_data = df_this_yr.groupby(["station_id", "measure_year"]).agg(
@@ -164,9 +131,8 @@ def insert_ghcn_by_year(year):
                     maxwinter=('measure_value', lambda x: round(x[(df_this_yr.loc[x.index, 'season'] == 'Winter') & (df_this_yr.loc[x.index, 'measure_type'] == 'TMAX')].mean(), 1) if 'Winter' in df_this_yr.loc[x.index, 'season'].values else None),
                     minwinter=('measure_value', lambda x: round(x[(df_this_yr.loc[x.index, 'season'] == 'Winter') & (df_this_yr.loc[x.index, 'measure_type'] == 'TMIN')].mean(), 1) if 'Winter' in df_this_yr.loc[x.index, 'season'].values else None)
                 )
-                
                 # Merging the results
-                merged_yearly_data = pd.merge(yearly_data, seasonal_data, on=["station_id", "measure_year"]).reset_index()
+                merged_yearly_data = pd.merge(yearly_data, seasonal_data, on=["station_id", "measure_year"], how="outer").reset_index()
                 data_to_insert = list(merged_yearly_data.itertuples(index=False, name=None))
                 insert_query = """
                     INSERT INTO stationdata (station_id, measure_year, maxyear, minyear,maxspring,minspring, 
@@ -181,8 +147,6 @@ def insert_ghcn_by_year(year):
         except Exception as ex:
             print(f"Fehler beim Verarbeiten der Datei: {ex}", flush=True)
 
-
-
 def download_file(year):
     baseURLbyYear = "https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/by_year/PLACEHOLDER.csv.gz"
     print(f'Herunterladen der {year} Datei.', flush=True)
@@ -196,9 +160,6 @@ def download_file(year):
         print(f"Fehler beim Herunterladen von {year}: {e}", flush=True)
         return None 
 
-
-
-
 def prepare_dataframe(file):
     df = pd.read_csv(file, delimiter=",", header=None, usecols=[0, 1, 2, 3],
                         names=["station_id", "measure_date", "measure_type", "measure_value"])
@@ -207,9 +168,7 @@ def prepare_dataframe(file):
     df["measure_year"] = df["measure_date"].dt.year    
     return df
 
-
 def fill_database(start, end):
-    #TODO: prüfen warum Range nicht funktioniert hat
     for year in range(start, end):
         cursor = get_db_connection()
         try:
@@ -220,7 +179,6 @@ def fill_database(start, end):
                 insert_ghcn_by_year(str(year))
         except Exception as ex:
             print(f"Fehler beim Verarbeiten der Datei: {ex}", flush=True)
-
 
 def set_pg_extension():
     cursor = get_db_connection()
@@ -235,4 +193,7 @@ def set_pg_extension():
     else:
         print("PostGIS is already enabled.", flush=True)
 
-set_pg_extension()
+#set_pg_extension()
+
+#create_tables()
+#fill_database(1930, 1932)
